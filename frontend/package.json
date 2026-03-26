@@ -1,6 +1,6 @@
 {
-  "name": "frontend",
-  "version": "1.0.0",
+  "name": "goc-app",
+  "version": "0.1.0",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
