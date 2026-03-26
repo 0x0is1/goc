@@ -71,6 +71,8 @@ jobs:
         env:
           _JAVA_OPTIONS: "-Xmx4g"
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+          EAS_NO_VCS: 1
+          EXPO_NO_VCS: 1
         working-directory: ./frontend
         run: |
           eas build \
@@ -84,6 +86,8 @@ jobs:
         env:
           _JAVA_OPTIONS: "-Xmx4g"
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
+          EAS_NO_VCS: 1
+          EXPO_NO_VCS: 1
         working-directory: ./frontend
         run: |
           eas build \
