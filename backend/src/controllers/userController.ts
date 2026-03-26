@@ -22,7 +22,8 @@ export const syncUser = asyncHandler(async (req: AuthenticatedRequest, res: Resp
     const displayName = (req.user!.name as string | undefined) ?? 'Anonymous';
     const email = (req.user!.email as string | undefined) ?? '';
     const photoURL = (req.user!.picture as string | undefined) ?? '';
-    const user = await UserService.upsertUser(uid, displayName, email, photoURL);
+    const fcmToken = req.body?.fcmToken as string | undefined;
+    const user = await UserService.upsertUser(uid, displayName, email, photoURL, fcmToken);
     const response: ApiResponse<UserProfile> = { success: true, data: user };
     res.json(response);
 });

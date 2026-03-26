@@ -9,19 +9,18 @@ export class UserService {
         return { id: doc.id, ...doc.data() } as UserProfile;
     }
 
-    static async upsertUser(id: string, displayName: string, email: string, photoURL: string): Promise<UserProfile> {
+    static async upsertUser(id: string, displayName: string, email: string, photoURL: string, fcmToken?: string): Promise<UserProfile> {
         const ref = db.collection('users').doc(id);
         await db.runTransaction(async (tx) => {
             const doc = await tx.get(ref);
+            const payload: any = { displayName, email, photoURL };
+            if (fcmToken) payload.fcmToken = fcmToken;
+
             if (!doc.exists) {
-                tx.set(ref, {
-                    displayName,
-                    email,
-                    photoURL,
-                    createdAt: FieldValue.serverTimestamp(),
-                });
+                payload.createdAt = FieldValue.serverTimestamp();
+                tx.set(ref, payload);
             } else {
-                tx.update(ref, { displayName, email, photoURL });
+                tx.update(ref, payload);
             }
         });
         const updated = await ref.get();

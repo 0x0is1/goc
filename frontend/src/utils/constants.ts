@@ -1,0 +1,21 @@
+export const FONT_FAMILY = 'PlusJakartaSans';
+export const FONT_FAMILY_BOLD = 'PlusJakartaSans_700Bold';
+export const FONT_FAMILY_EXTRA_BOLD = 'PlusJakartaSans_800ExtraBold';
+export const FEED_PAGE_SIZE = 20;
+export const TOAST_DURATION_MS = 3000;
+export const WAYBACK_LOGO_SIZE = 20;
+export const TAB_BAR_HEIGHT = 56;
+export const FAB_SIZE = 56;
+export const FAB_BOTTOM_OFFSET = 80;
+export const FAB_RIGHT_OFFSET = 16;
+export const AVATAR_SIZE_SM = 20;
+export const AVATAR_SIZE_MD = 32;
+export const AVATAR_SIZE_LG = 64;
+export const TWEET_EMBED_HEIGHT_FEED = 180;
+export const TWEET_EMBED_HEIGHT_DETAIL = 280;
+export const TITLE_MAX_CHARS = 120;
+export const DESCRIPTION_MIN_CHARS = 10;
+export const DESCRIPTION_MAX_CHARS = 5000;
+export const MOCK_NETWORK_DELAY_MS = 800;
+export const API_URL_KEY = 'apiUrl';
+

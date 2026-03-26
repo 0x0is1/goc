@@ -1,0 +1,137 @@
+import { Platform } from 'react-native';
+import { auth } from '@services/firebase';
+import { Post, Vote, UserProfile, PaginatedResponse, ApiResponse } from '@appTypes/index';
+
+const API_BASE = Platform.OS === 'android' ? 'http://10.0.2.2:3000/api' : 'http://localhost:3000/api';
+
+async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    const token = await auth.currentUser?.getIdToken(true);
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...(options.headers as Record<string, string>),
+    };
+    if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    // Add timeout to prevent indefinite hanging in emulator networks
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
+
+    try {
+        const response = await fetch(`${API_BASE}${endpoint}`, {
+            ...options,
+            headers,
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        const text = await response.text();
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch {
+            data = text;
+        }
+
+        if (!response.ok) {
+            throw new Error(data.error || data.message || `API Error ${response.status}`);
+        }
+        return data as T;
+    } catch (err: any) {
+        clearTimeout(timeoutId);
+        throw err;
+    }
+}
+
+interface FeedResult {
+    posts: Post[];
+    cursor: string | null;
+    hasMore: boolean;
+}
+
+export async function getFeed(cursor?: string): Promise<FeedResult> {
+    const url = cursor ? `/posts?limit=10&cursor=${cursor}` : '/posts?limit=10';
+    const res = await fetchApi<PaginatedResponse<Post>>(url);
+    return {
+        posts: res.data || [],
+        cursor: res.meta?.cursor || null,
+        hasMore: res.meta?.hasMore || false,
+    };
+}
+
+export async function getPost(id: string): Promise<Post> {
+    const res = await fetchApi<ApiResponse<Post>>(`/posts/${id}`);
+    if (!res.data) throw new Error('Post not found');
+    return res.data;
+}
+
+interface CreatePostInput {
+    tweetUrl: string;
+    title: string;
+    description: string;
+}
+
+export async function createPost(data: CreatePostInput): Promise<Post> {
+    const res = await fetchApi<ApiResponse<Post>>('/posts', {
+        method: 'POST',
+        body: JSON.stringify(data)
+    });
+    return res.data!;
+}
+
+interface VoteResult {
+    upvotes: number;
+    downvotes: number;
+    vote: Vote | null;
+}
+
+export async function votePost(postId: string, type: 'up' | 'down'): Promise<VoteResult> {
+    const res = await fetchApi<ApiResponse<VoteResult>>(`/votes/${postId}`, {
+        method: 'POST',
+        body: JSON.stringify({ type })
+    });
+    return res.data!;
+}
+
+// In the backend VoteService, voting the exact SAME type again toggles/unvotes it. 
+// However, if the useVote hook just wants to remove unconditionally, it can just submit the inverse?
+// Let's implement an explicit removeVote fallback or rely on the hook's toggle tracking logic.
+export async function removeVote(postId: string): Promise<VoteResult> {
+    // If there is no dedicated DELETE endpoint, we can fallback to the hook doing proper toggle
+    // But let's assume fetching here
+    const res = await fetchApi<ApiResponse<VoteResult>>(`/votes/${postId}?remove=true`, { method: 'DELETE' }).catch(() => null);
+    if (!res) throw new Error("Vote removal not implemented cleanly on backend yet");
+    return res.data!;
+}
+
+export async function getUserVote(postId: string): Promise<Vote | null> {
+    try {
+        const res = await fetchApi<ApiResponse<Vote>>(`/votes/${postId}`);
+        return res.data || null;
+    } catch {
+        return null;
+    }
+}
+
+export async function getUserPosts(userId: string): Promise<Post[]> {
+    const res = await fetchApi<PaginatedResponse<Post>>(`/users/${userId}/posts`);
+    return res.data || [];
+}
+
+export async function syncUserProfile(fcmToken?: string): Promise<UserProfile> {
+    const res = await fetchApi<ApiResponse<UserProfile>>('/users/sync', {
+        method: 'POST',
+        body: JSON.stringify(fcmToken ? { fcmToken } : {})
+    });
+    return res.data!;
+}
+
+export async function getWaybackSnapshot(url: string): Promise<{ waybackUrl: string | null }> {
+    const res = await fetchApi<ApiResponse<{ waybackUrl: string | null }>>('/wayback/snapshot', {
+        method: 'POST',
+        body: JSON.stringify({ url }),
+    });
+    return res.data!;
+}

@@ -1,0 +1,83 @@
+export interface Post {
+    id: string;
+    tweetUrl: string;
+    tweetEmbedHtml: string;
+    title: string;
+    description: string;
+    authorId: string;
+    authorName: string;
+    authorAvatar: string;
+    waybackUrl: string;
+    upvotes: number;
+    downvotes: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface Vote {
+    userId: string;
+    postId: string;
+    type: 'up' | 'down';
+    createdAt: string;
+}
+
+export interface User {
+    id: string;
+    displayName: string;
+    email: string;
+    photoURL: string;
+    createdAt: string;
+}
+
+export interface FeedState {
+    posts: Post[];
+    loading: boolean;
+    error: string | null;
+    cursor: string | null;
+    hasMore: boolean;
+}
+
+export interface AuthError {
+    code: string;
+    message: string;
+}
+
+export type VoteType = 'up' | 'down';
+
+export type ColorMode = 'light' | 'dark';
+
+export interface CreatePostFields {
+    tweetUrl: string;
+    title: string;
+    description: string;
+}
+
+export interface FieldErrors {
+    tweetUrl?: string;
+    title?: string;
+    description?: string;
+}
+
+export interface UserProfile {
+    id: string;
+    displayName: string;
+    email: string;
+    photoURL: string;
+    fcmToken?: string;
+    createdAt: string;
+}
+
+export interface ApiResponse<T> {
+    success: boolean;
+    data?: T;
+    error?: string;
+    code?: string;
+}
+
+export interface PaginatedResponse<T> extends ApiResponse<T[]> {
+    meta: {
+        cursor: string | null;
+        hasMore: boolean;
+    };
+}
+

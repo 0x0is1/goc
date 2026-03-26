@@ -19,4 +19,4 @@ try {
     process.exit(1);
 }
 
-export { db, adminAuth };
+export { db, adminAuth, admin };

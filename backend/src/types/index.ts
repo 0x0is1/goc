@@ -29,6 +29,7 @@ export interface UserProfile {
     displayName: string;
     email: string;
     photoURL: string;
+    fcmToken?: string;
     createdAt: Timestamp;
 }
 

@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "Gems of Congress",
+    "slug": "gems-of-congress",
+    "version": "0.1.1",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "icon": "./assets/icon.png",
+    "scheme": "gemsofcongress",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0A0A"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.nys.gemsofcongress"
+    },
+    "android": {
+      "package": "com.nys.gemsofcongress",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundColor": "#0A0A0A"
+      },
+      "googleServicesFile": "./google-services.json"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/android-icon-monochrome.png",
+          "color": "#E63946"
+        }
+      ],
+      "@react-native-google-signin/google-signin"
+    ],
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "extra": {
+      "apiUrl": "http://localhost:3000",
+      "router": {},
+      "eas": {
+        "projectId": "7bcc063d-09b8-4a12-a726-91c5bb3e97be"
+      }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/7bcc063d-09b8-4a12-a726-91c5bb3e97be"
+    }
+  }
+}

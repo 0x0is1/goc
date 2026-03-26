@@ -6,14 +6,15 @@ on:
       - main
       - preview
     paths:
-      - "android/**"
-      - "app.json"
-      - "eas.json"
-      - "package.json"
-      - "package-lock.json"
-      - "scripts/**"
-      - "babel.config.js"
-      - "metro.config.js"
+      - "frontend/android/**"
+      - "frontend/ios/**"
+      - "frontend/app.json"
+      - "frontend/eas.json"
+      - "frontend/package.json"
+      - "frontend/package-lock.json"
+      - "frontend/babel.config.js"
+      - "frontend/metro.config.js"
+      - ".github/workflows/android-apk.yml"
   workflow_dispatch:
 
 jobs:
