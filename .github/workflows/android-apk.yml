@@ -61,18 +61,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Inject Google Services JSON
-        env:
-          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-        run: |
-          echo "$GOOGLE_SERVICES_JSON" | base64 --decode > frontend/google-services.json
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add -f frontend/google-services.json
-          git commit -m "chore: temp commit secret for EAS tarball"
-
       - name: Build Development APK
         env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
           _JAVA_OPTIONS: "-Xmx4g"
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
         working-directory: ./frontend
@@ -86,6 +77,7 @@ jobs:
 
       - name: Build Preview APK
         env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
           _JAVA_OPTIONS: "-Xmx4g"
           GRADLE_OPTS: "-Dorg.gradle.daemon=false -Dorg.gradle.jvmargs=-Xmx4g"
         working-directory: ./frontend
