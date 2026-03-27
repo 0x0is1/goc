@@ -18,7 +18,7 @@ module.exports = {
     expo: {
         name: "Gems of Congress",
         slug: "gems-of-congress",
-        version: "0.1.3",
+        version: "0.1.4",
         orientation: "portrait",
         userInterfaceStyle: "automatic",
         icon: "./assets/icon.png",
