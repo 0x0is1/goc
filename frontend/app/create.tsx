@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import { View, ScrollView, StyleSheet, Switch, TouchableOpacity } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -133,6 +133,87 @@ export default function CreatePost() {
                             <DSText size="sm" color="danger" style={{ marginTop: tokens.spacing.xs }}>{fieldErrors.description}</DSText>
                         )}
                     </View>
+                    <View>
+                        <View style={styles.titleRow}>
+                            <DSText size="sm" weight="medium" color="textMuted">Article / Source Links</DSText>
+                            <TouchableOpacity onPress={() => {
+                                const newLinks = [...(fields.articleLinks || []), ''];
+                                setField('articleLinks', newLinks as any);
+                            }}>
+                                <Ionicons name="add-circle-outline" size={20} color={tokens.colors.accent} />
+                            </TouchableOpacity>
+                        </View>
+
+                        {(fields.articleLinks || []).map((link, index) => (
+                            <View key={index} style={{ marginBottom: 8, flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+                                <View style={{ flex: 1 }}>
+                                    <DSInput
+                                        value={link}
+                                        onChangeText={(v) => {
+                                            const newLinks = [...(fields.articleLinks || [])];
+                                            newLinks[index] = v;
+                                            setField('articleLinks', newLinks as any);
+                                        }}
+                                        placeholder="https://news-article.com/..."
+                                        keyboardType="url"
+                                        autoCapitalize="none"
+                                    />
+                                </View>
+                                {fields.articleLinks && fields.articleLinks.length > 1 && (
+                                    <TouchableOpacity onPress={() => {
+                                        const newLinks = fields.articleLinks!.filter((_, i) => i !== index);
+                                        setField('articleLinks', newLinks as any);
+                                    }}>
+                                        <Ionicons name="remove-circle-outline" size={20} color={tokens.colors.danger} />
+                                    </TouchableOpacity>
+                                )}
+                            </View>
+                        ))}
+                    </View>
+
+                    <View>
+                        <DSText size="sm" weight="medium" color="textMuted" style={{ marginBottom: tokens.spacing.xs }}>
+                            YouTube Video Link (Optional)
+                        </DSText>
+                        <DSInput
+                            value={fields.youtubeLink}
+                            onChangeText={(v) => setField('youtubeLink', v)}
+                            placeholder="https://youtube.com/watch?v=..."
+                            keyboardType="url"
+                            autoCapitalize="none"
+                            accessibilityLabel="YouTube link input"
+                        />
+                        {fieldErrors.youtubeLink && (
+                            <DSText size="sm" color="danger" style={{ marginTop: tokens.spacing.xs }}>{fieldErrors.youtubeLink}</DSText>
+                        )}
+                    </View>
+
+                    <View>
+                        <DSText size="sm" weight="medium" color="textMuted" style={{ marginBottom: tokens.spacing.xs }}>
+                            Topic Tags (Optional, comma separated)
+                        </DSText>
+                        <DSInput
+                            value={fields.tags}
+                            onChangeText={(v) => setField('tags', v)}
+                            placeholder="tech, politics, environment..."
+                            autoCapitalize="none"
+                            accessibilityLabel="Tags input"
+                        />
+                    </View>
+
+                    <View style={styles.toggleRow}>
+                        <View style={{ flex: 1 }}>
+                            <DSText size="base" weight="semiBold" color="textPrimary">Show my username</DSText>
+                            <DSText size="xs" color="textMuted">If disabled, this Gem will appear without your profile info.</DSText>
+                        </View>
+                        <Switch
+                            value={fields.showUserInfo}
+                            onValueChange={(v) => setField('showUserInfo', v)}
+                            trackColor={{ false: tokens.colors.border, true: tokens.colors.accent }}
+                            thumbColor="#ffffff"
+                        />
+                    </View>
+
                     <DSButton
                         label="Publish Gem"
                         onPress={submit}
@@ -153,6 +234,14 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginBottom: 4,
+    },
+    toggleRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 16,
+        backgroundColor: 'rgba(0,0,0,0.02)',
+        borderRadius: 12,
+        marginVertical: 8,
     },
 });
 

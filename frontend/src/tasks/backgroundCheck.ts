@@ -13,7 +13,7 @@ TaskManager.defineTask(BACKGROUND_POST_CHECK_TASK, async () => {
     try {
         console.log('[BackgroundFetch] Running background post check...');
 
-        // 1. Fetch latest posts (limit 10)
+        // 1. Fetch latest posts
         const { posts } = await getFeed();
         if (!posts || posts.length === 0) {
             console.log('[BackgroundFetch] No posts fetched.');
@@ -40,7 +40,7 @@ TaskManager.defineTask(BACKGROUND_POST_CHECK_TASK, async () => {
                 // 4. Send notification
                 await Notifications.scheduleNotificationAsync({
                     content: {
-                        title: 'New Gems Posted!',
+                        title: '💎 New Controversy Gems',
                         body: `${newCount} new controversy ${newCount === 1 ? 'gem has' : 'gems have'} been curated. Check them out!`,
                         data: { url: '/(tabs)/' },
                     },
@@ -66,7 +66,7 @@ TaskManager.defineTask(BACKGROUND_POST_CHECK_TASK, async () => {
  * Recommended call site: Root _layout.tsx inside a useEffect.
  */
 export async function registerBackgroundFetchAsync() {
-    console.log('[BackgroundFetch] Registering task...');
+    console.log('[BackgroundFetch] Registering production task...');
     return BackgroundFetch.registerTaskAsync(BACKGROUND_POST_CHECK_TASK, {
         minimumInterval: 60 * 120, // 2 hours in seconds
         stopOnTerminate: false,    // keep running after app is closed
@@ -79,4 +79,8 @@ export async function registerBackgroundFetchAsync() {
  */
 export async function unregisterBackgroundFetchAsync() {
     return BackgroundFetch.unregisterTaskAsync(BACKGROUND_POST_CHECK_TASK);
+}
+
+export async function isTaskRegisteredAsync() {
+    return TaskManager.isTaskRegisteredAsync(BACKGROUND_POST_CHECK_TASK);
 }

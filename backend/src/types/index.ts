@@ -11,6 +11,11 @@ export interface Post {
     authorName: string;
     authorAvatar: string;
     waybackUrl: string | null;
+    articleLink?: string;
+    tags?: string[];
+    showUserInfo: boolean;
+    snapshotScreenshot?: string | null;
+    snapshotTimestamp?: string | null;
     upvotes: number;
     downvotes: number;
     createdAt: Timestamp;

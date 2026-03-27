@@ -5,8 +5,13 @@ import { AuthenticatedRequest, ApiResponse, PaginatedResponse, Post } from '@app
 import { paginationSchema } from '@utils/validators';
 
 export const listPosts = asyncHandler(async (req: AuthenticatedRequest, res: Response) => {
-    const query = paginationSchema.parse({ limit: req.query['limit'], cursor: req.query['cursor'] });
-    const result = await PostService.getFeed(query.limit, query.cursor);
+    const query = paginationSchema.parse({
+        limit: req.query['limit'],
+        cursor: req.query['cursor'],
+        sort: req.query['sort'],
+        tag: req.query['tag'],
+    });
+    const result = await PostService.getFeed(query.limit, query.cursor, query.sort as 'latest' | 'top', query.tag);
     const response: PaginatedResponse<Post> = {
         success: true,
         data: result.posts,

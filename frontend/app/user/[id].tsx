@@ -79,13 +79,15 @@ export default function UserProfileScreen() {
                     Gems from @{authorName}
                 </DSText>
 
-                {posts.length > 0 ? (
-                    posts.map((post) => <FeedCard key={post.id} post={post} />)
-                ) : (
-                    <DSText size="base" color="textMuted" style={{ textAlign: 'center', marginTop: 32 }}>
-                        No gems found for this user.
-                    </DSText>
-                )}
+                <View style={{ gap: 0 }}>
+                    {posts.length > 0 ? (
+                        posts.map((post) => <FeedCard key={post.id} post={post} />)
+                    ) : (
+                        <DSText size="base" color="textMuted" style={{ textAlign: 'center', marginTop: 32 }}>
+                            No gems found for this user.
+                        </DSText>
+                    )}
+                </View>
             </ScrollView>
         </View>
     );
@@ -94,7 +96,6 @@ export default function UserProfileScreen() {
 const styles = StyleSheet.create({
     scrollContent: {
         paddingVertical: 16,
-        marginHorizontal: 2,
     },
     profileSection: {
         alignItems: 'center',

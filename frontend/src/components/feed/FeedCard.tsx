@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import Animated, {
-  FadeInDown,
-  Layout
+  FadeIn
 } from 'react-native-reanimated';
 import { useTheme } from '@contexts/ThemeContext';
 import { DSText } from '@ds/Text';
@@ -13,6 +13,7 @@ import { TweetEmbed } from '@components/feed/TweetEmbed';
 import { useRelativeTime } from '@hooks/useRelativeTime';
 import { useAuthContext } from '@contexts/AuthContext';
 import { Post } from '@appTypes/index';
+import { DSBadge } from '@ds/Badge';
 
 interface FeedCardProps {
   post: Post;
@@ -41,8 +42,7 @@ export function FeedCard({ post }: FeedCardProps) {
 
   return (
     <Animated.View
-      entering={FadeInDown.duration(400).springify().damping(12)}
-      layout={Layout.springify()}
+      entering={FadeIn.duration(500)}
       style={cardStyle}
     >
       <View style={styles.inner}>
@@ -52,13 +52,29 @@ export function FeedCard({ post }: FeedCardProps) {
           onPress={() => router.push(`/post/${post.id}`)}
         >
           <View style={styles.headerRow}>
-            <DSText size="md" weight="bold" color="textPrimary" style={{ flex: 1 }} numberOfLines={1}>
-              {post.title}
-            </DSText>
+            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <DSText size="md" weight="bold" color="textPrimary" numberOfLines={1} style={{ flexShrink: 1 }}>
+                {post.title}
+              </DSText>
+            </View>
             <DSText size="xs" color="textMuted">
               {relativeTime}
             </DSText>
           </View>
+
+          {/* Tags */}
+          {post.tags && post.tags.length > 0 && (
+            <View style={styles.tagContainer}>
+              {post.tags.map(tag => (
+                <DSBadge
+                  key={tag}
+                  label={tag}
+                  variant="solid"
+                  onPress={() => router.push({ pathname: '/', params: { tag } })}
+                />
+              ))}
+            </View>
+          )}
 
           <DSText
             size="base"
@@ -74,27 +90,44 @@ export function FeedCard({ post }: FeedCardProps) {
         </TouchableOpacity>
 
         <View style={styles.actionRow}>
-          <TouchableOpacity
-            style={styles.metaRow}
-            activeOpacity={0.6}
-            onPress={handleUserPress}
-          >
-            <DSText size="sm" weight="semiBold" color="textMuted">
-              @{post.authorName}
-            </DSText>
-          </TouchableOpacity>
-
-          <View style={styles.actions}>
+          <View style={styles.leftActions}>
             <VoteButtons
               postId={post.id}
               upvotes={post.upvotes}
               downvotes={post.downvotes}
-              iconSize={16}
+              iconSize={18}
             />
+          </View>
+
+          <View style={styles.rightActions}>
             <WaybackButton
               waybackUrl={post.waybackUrl}
               snapshotScreenshot={post.snapshotScreenshot}
             />
+
+            {/* Source Logos Moved Here */}
+            <View style={styles.sourceIconsContainer}>
+              {post.youtubeLink && (
+                <View style={styles.iconWrapper}>
+                  <Ionicons name="logo-youtube" size={14} color="#FF0000" />
+                </View>
+              )}
+              {post.articleLinks && post.articleLinks.length > 0 && (
+                <View style={styles.iconWrapper}>
+                  <Ionicons name="newspaper-outline" size={14} color={tokens.colors.accent} />
+                </View>
+              )}
+            </View>
+
+            <TouchableOpacity
+              style={styles.metaRow}
+              activeOpacity={0.6}
+              onPress={post.showUserInfo ? handleUserPress : undefined}
+            >
+              <DSText size="sm" weight="semiBold" color="textMuted">
+                {post.showUserInfo ? `@${post.authorName}` : 'Anonymous'}
+              </DSText>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -111,23 +144,43 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 8,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 4,
+    marginBottom: 8,
+  },
+  sourceIconsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  iconWrapper: {
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    flex: 1,
-    flexWrap: 'wrap',
+    paddingVertical: 6,
   },
-  actions: {
+  tagContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 10,
+  },
+  leftActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+  },
+  rightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
   },
 });

@@ -16,6 +16,10 @@ export const createPostSchema = z.object({
         .min(DESCRIPTION_MIN_CHARS, `Description must be at least ${DESCRIPTION_MIN_CHARS} characters`)
         .max(DESCRIPTION_MAX_CHARS, `Description must be ${DESCRIPTION_MAX_CHARS} characters or less`)
         .trim(),
+    articleLinks: z.array(z.string().url()).optional().default([]),
+    youtubeLink: z.string().url().optional().or(z.literal('')),
+    tags: z.string().optional(),
+    showUserInfo: z.boolean().optional().default(true),
 });
 
 export const loginSchema = z.object({

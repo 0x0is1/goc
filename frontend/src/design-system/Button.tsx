@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet, ViewStyle, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, StyleSheet, ViewStyle, ActivityIndicator, View } from 'react-native';
 import Animated, {
     useSharedValue,
     useAnimatedStyle,
@@ -17,6 +17,7 @@ interface DSButtonProps {
     fullWidth?: boolean;
     loading?: boolean;
     disabled?: boolean;
+    leftIcon?: React.ReactNode;
     accessibilityLabel?: string;
 }
 
@@ -27,6 +28,7 @@ export function DSButton({
     fullWidth = false,
     loading = false,
     disabled = false,
+    leftIcon,
     accessibilityLabel,
 }: DSButtonProps) {
     const { tokens } = useTheme();
@@ -71,7 +73,10 @@ export function DSButton({
                 {loading ? (
                     <ActivityIndicator color={variant === 'solid' ? tokens.colors.accentForeground : tokens.colors.textPrimary} />
                 ) : (
-                    <DSText weight="semiBold" size="base" color={textColor}>{label}</DSText>
+                    <>
+                        {leftIcon && <View style={{ marginRight: 0 }}>{leftIcon}</View>}
+                        <DSText weight="semiBold" size="base" color={textColor}>{label}</DSText>
+                    </>
                 )}
             </Animated.View>
         </TouchableOpacity>

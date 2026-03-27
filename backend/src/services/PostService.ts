@@ -18,22 +18,31 @@ interface FeedResult {
 }
 
 export class PostService {
-    static async getFeed(limit: number, cursor?: string): Promise<FeedResult> {
-        let query = db
-            .collection('posts')
-            .orderBy('createdAt', 'desc')
-            .limit(limit + 1);
+    static async getFeed(limit: number, cursor?: string, sort: 'latest' | 'top' = 'latest', tag?: string): Promise<FeedResult> {
+        let query: any = db.collection('posts');
+
+        if (tag) {
+            query = query.where('tags', 'array-contains', tag);
+        }
+
+        if (sort === 'top') {
+            query = query.orderBy('upvotes', 'desc').orderBy('createdAt', 'desc');
+        } else {
+            query = query.orderBy('createdAt', 'desc');
+        }
+
+        query = query.limit(limit + 1);
 
         if (cursor) {
             const cursorDoc = await db.collection('posts').doc(cursor).get();
             if (cursorDoc.exists) {
-                query = query.startAfter(cursorDoc) as typeof query;
+                query = query.startAfter(cursorDoc);
             }
         }
 
         const snapshot = await query.get();
         const posts = await Promise.all(
-            snapshot.docs.slice(0, limit).map(doc => PostService.serializePost(doc))
+            snapshot.docs.slice(0, limit).map((doc: any) => PostService.serializePost(doc))
         );
 
         const hasMore = snapshot.docs.length > limit;
@@ -55,6 +64,10 @@ export class PostService {
             tweetUrl: data.tweetUrl,
             title: data.title,
             description: data.description,
+            articleLinks: data.articleLinks || [],
+            youtubeLink: data.youtubeLink || null,
+            tags: data.tags || [],
+            showUserInfo: data.showUserInfo !== false, // Default to true
             authorId: userId,
             authorName,
             authorAvatar,
@@ -118,7 +131,7 @@ export class PostService {
     }
 
     static async getUserPosts(userId: string, limit: number, cursor?: string): Promise<FeedResult> {
-        let query = db
+        let query: any = db
             .collection('posts')
             .where('authorId', '==', userId)
             .orderBy('createdAt', 'desc')
@@ -127,13 +140,13 @@ export class PostService {
         if (cursor) {
             const cursorDoc = await db.collection('posts').doc(cursor).get();
             if (cursorDoc.exists) {
-                query = query.startAfter(cursorDoc) as typeof query;
+                query = query.startAfter(cursorDoc);
             }
         }
 
         const snapshot = await query.get();
         const posts = await Promise.all(
-            snapshot.docs.slice(0, limit).map(doc => PostService.serializePost(doc))
+            snapshot.docs.slice(0, limit).map((doc: any) => PostService.serializePost(doc))
         );
 
         const hasMore = snapshot.docs.length > limit;
@@ -145,9 +158,16 @@ export class PostService {
     static async serializePost(doc: FirebaseFirestore.DocumentSnapshot): Promise<Post> {
         const data = doc.data()!;
 
+        // Handle legacy articleLink (string) vs new articleLinks (array)
+        let articleLinks = data.articleLinks || [];
+        if (data.articleLink && typeof data.articleLink === 'string' && articleLinks.length === 0) {
+            articleLinks = [data.articleLink];
+        }
+
         return {
             id: doc.id,
             ...data,
+            articleLinks,
             tweetEmbedHtml: `<blockquote class="twitter-tweet"><a href="${data.tweetUrl}"></a></blockquote>`,
             createdAt:
                 data.createdAt instanceof Timestamp

@@ -51,8 +51,15 @@ interface FeedResult {
     hasMore: boolean;
 }
 
-export async function getFeed(cursor?: string): Promise<FeedResult> {
-    const url = cursor ? `/posts?limit=10&cursor=${cursor}` : '/posts?limit=10';
+export async function getFeed(
+    cursor?: string,
+    sort: 'latest' | 'top' = 'latest',
+    tag?: string
+): Promise<FeedResult> {
+    let url = `/posts?limit=10&sort=${sort}`;
+    if (cursor) url += `&cursor=${cursor}`;
+    if (tag) url += `&tag=${encodeURIComponent(tag)}`;
+
     const res = await fetchApi<PaginatedResponse<Post>>(url);
     return {
         posts: res.data || [],
@@ -71,6 +78,10 @@ interface CreatePostInput {
     tweetUrl: string;
     title: string;
     description: string;
+    articleLinks?: string[];
+    youtubeLink?: string | null;
+    tags?: string[];
+    showUserInfo?: boolean;
 }
 
 export async function createPost(data: CreatePostInput): Promise<Post> {

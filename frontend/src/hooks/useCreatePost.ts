@@ -9,17 +9,25 @@ interface CreatePostHook {
     fields: CreatePostFields;
     fieldErrors: FieldErrors;
     submitting: boolean;
-    setField: (key: keyof CreatePostFields, value: string) => void;
+    setField: (key: keyof CreatePostFields, value: string | boolean) => void;
     submit: () => Promise<void>;
 }
 
 export function useCreatePost(): CreatePostHook {
     const { showToast } = useToastContext();
-    const [fields, setFields] = useState<CreatePostFields>({ tweetUrl: '', title: '', description: '' });
+    const [fields, setFields] = useState<CreatePostFields>({
+        tweetUrl: '',
+        title: '',
+        description: '',
+        articleLinks: [''],
+        youtubeLink: '',
+        tags: '',
+        showUserInfo: true
+    });
     const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
     const [submitting, setSubmitting] = useState(false);
 
-    const setField = useCallback((key: keyof CreatePostFields, value: string) => {
+    const setField = useCallback((key: keyof CreatePostFields, value: string | boolean) => {
         setFields((prev) => ({ ...prev, [key]: value }));
         setFieldErrors((prev) => ({ ...prev, [key]: undefined }));
     }, []);
@@ -37,7 +45,18 @@ export function useCreatePost(): CreatePostHook {
         }
         setSubmitting(true);
         try {
-            await apiCreatePost(result.data);
+            // Process tags from string to array
+            const processedTags = fields.tags
+                ? fields.tags.split(',').map(t => t.trim()).filter(t => t.length > 0)
+                : [];
+
+            const processedLinks = (fields.articleLinks || []).filter(l => l.trim().length > 0);
+
+            await apiCreatePost({
+                ...result.data,
+                articleLinks: processedLinks,
+                tags: processedTags
+            });
             showToast('Gem published!', 'success');
             router.replace('/');
         } catch {

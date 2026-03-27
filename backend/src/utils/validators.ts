@@ -8,6 +8,10 @@ export const createPostSchema = z.object({
     tweetUrl: tweetUrlSchema,
     title: z.string().min(3, 'Title too short').max(120, 'Title too long').trim(),
     description: z.string().min(10, 'Description too short').max(5000, 'Description too long').trim(),
+    articleLinks: z.array(z.string().url()).optional().default([]),
+    youtubeLink: z.string().url().optional().or(z.literal('')),
+    tags: z.array(z.string()).optional(),
+    showUserInfo: z.boolean().optional().default(true),
 });
 
 export const voteSchema = z.object({
@@ -17,6 +21,8 @@ export const voteSchema = z.object({
 export const paginationSchema = z.object({
     limit: z.coerce.number().min(1).max(50).default(20),
     cursor: z.string().optional(),
+    sort: z.enum(['latest', 'top']).optional().default('latest'),
+    tag: z.string().optional(),
 });
 
 export const waybackRequestSchema = z.object({

@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { getFeed as apiFeed } from '@services/api';
 import { Post } from '@appTypes/index';
 
@@ -13,9 +13,15 @@ interface FeedHookState {
 interface FeedHook extends FeedHookState {
     refresh: () => Promise<void>;
     loadMore: () => Promise<void>;
+    setSort: (sort: 'latest' | 'top') => void;
+    setTag: (tag: string | null) => void;
+    sort: 'latest' | 'top';
+    tag: string | null;
 }
 
-export function useFeed(): FeedHook {
+export function useFeed(initialSort: 'latest' | 'top' = 'latest', initialTag: string | null = null): FeedHook {
+    const [sort, setSort] = useState<'latest' | 'top'>(initialSort);
+    const [tag, setTag] = useState<string | null>(initialTag);
     const [state, setState] = useState<FeedHookState>({
         posts: [],
         loading: true,
@@ -24,49 +30,51 @@ export function useFeed(): FeedHook {
         hasMore: false,
     });
 
-    const fetchInitial = useCallback(async () => {
+    const fetchFeed = useCallback(async (isRefresh: boolean, startCursor?: string) => {
         setState((prev) => ({ ...prev, loading: true, error: null }));
         try {
-            const result = await apiFeed();
-            setState({ posts: result.posts, loading: false, error: null, cursor: result.cursor, hasMore: result.hasMore });
-        } catch {
-            setState((prev) => ({ ...prev, loading: false, error: 'Failed to load feed' }));
-        }
-    }, []);
+            const result = await apiFeed(startCursor, sort, tag ?? undefined);
 
-    const refresh = useCallback(async () => {
-        setState((prev) => ({ ...prev, loading: true, error: null }));
-        try {
-            const result = await apiFeed();
-            setState({ posts: result.posts, loading: false, error: null, cursor: result.cursor, hasMore: result.hasMore });
-        } catch {
-            setState((prev) => ({ ...prev, loading: false, error: 'Failed to refresh feed' }));
-        }
-    }, []);
-
-    const loadMore = useCallback(async () => {
-        if (!state.hasMore || state.loading) return;
-        setState((prev) => ({ ...prev, loading: true }));
-        try {
-            const result = await apiFeed(state.cursor ?? undefined);
             setState((prev) => ({
-                posts: [...prev.posts, ...result.posts],
+                posts: isRefresh ? result.posts : [...prev.posts, ...result.posts],
                 loading: false,
                 error: null,
                 cursor: result.cursor,
                 hasMore: result.hasMore,
             }));
-        } catch {
-            setState((prev) => ({ ...prev, loading: false, error: 'Failed to load more' }));
+        } catch (err) {
+            console.error('Feed error:', err);
+            setState((prev) => ({
+                ...prev,
+                loading: false,
+                error: isRefresh ? 'Failed to refresh feed' : 'Failed to load more'
+            }));
         }
-    }, [state.hasMore, state.loading, state.cursor]);
+    }, [sort, tag]);
 
-    const [initialized, setInitialized] = useState(false);
-    if (!initialized) {
-        setInitialized(true);
-        fetchInitial();
-    }
+    // Initial load and filter changes
+    useEffect(() => {
+        fetchFeed(true);
+    }, [sort, tag, fetchFeed]);
 
-    return { ...state, refresh, loadMore };
+    // Sync from URL params
+    useEffect(() => {
+        if (initialSort !== sort) setSort(initialSort);
+    }, [initialSort]);
+
+    useEffect(() => {
+        if (initialTag !== tag) setTag(initialTag);
+    }, [initialTag]);
+
+    const refresh = useCallback(async () => {
+        await fetchFeed(true);
+    }, [fetchFeed]);
+
+    const loadMore = useCallback(async () => {
+        if (!state.hasMore || state.loading || !state.cursor) return;
+        await fetchFeed(false, state.cursor);
+    }, [state.hasMore, state.loading, state.cursor, fetchFeed]);
+
+    return { ...state, refresh, loadMore, setSort, setTag, sort, tag };
 }
 

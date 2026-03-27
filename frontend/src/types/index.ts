@@ -4,14 +4,18 @@ export interface Post {
     tweetEmbedHtml: string;
     title: string;
     description: string;
-    authorId: string;
     authorName: string;
     authorAvatar: string;
-    snapshotScreenshot?: string;
-    snapshotTimestamp?: string;
-    waybackUrl?: string;
     upvotes: number;
     downvotes: number;
+    articleLinks?: string[];
+    youtubeLink?: string;
+    tags?: string[];
+    showUserInfo: boolean;
+    snapshotScreenshot?: string;
+    snapshotTimestamp?: string;
+    authorId: string;
+    waybackUrl?: string;
     createdAt: string;
     updatedAt: string;
 }
@@ -52,12 +56,20 @@ export interface CreatePostFields {
     tweetUrl: string;
     title: string;
     description: string;
+    articleLinks?: string[];
+    youtubeLink?: string;
+    tags?: string;
+    showUserInfo?: boolean;
 }
 
 export interface FieldErrors {
     tweetUrl?: string;
     title?: string;
     description?: string;
+    articleLinks?: string;
+    youtubeLink?: string;
+    tags?: string;
+    showUserInfo?: string;
 }
 
 export interface UserProfile {

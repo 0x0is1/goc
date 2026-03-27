@@ -91,20 +91,51 @@ export class SnapshotService {
         timeout: NAVIGATION_TIMEOUT,
       });
 
-      // Wait for content to load
-      await sleep(2000);
+      // Wait for content to load and the main article to appear
+      try {
+        await page.waitForSelector('article', { timeout: 5000 });
+      } catch (e) {
+        logger.warn('article selector not found, falling back to full viewport', { url: normalized });
+      }
+
+      // Add a small buffer for heavy media
+      await sleep(1500);
 
       // Get the HTML content
       const htmlContent = await page.content();
 
-      // Take a screenshot using JPEG with good quality
-      // JPEG is much smaller than PNG for screenshots
-      const screenshotBuffer = await page.screenshot({
-        type: 'jpeg',
-        quality: 85,
-        fullPage: false,
-        encoding: 'base64',
-      }) as string;
+      // Find the tweet element and take a clipped screenshot
+      let screenshotBuffer: string;
+      const element = await page.$('article');
+
+      if (element) {
+        const boundingBox = await element.boundingBox();
+        if (boundingBox) {
+          screenshotBuffer = await page.screenshot({
+            type: 'jpeg',
+            quality: 85,
+            clip: {
+              x: boundingBox.x,
+              y: boundingBox.y,
+              width: boundingBox.width,
+              height: boundingBox.height,
+            },
+            encoding: 'base64',
+          }) as string;
+        } else {
+          screenshotBuffer = await page.screenshot({
+            type: 'jpeg',
+            quality: 85,
+            encoding: 'base64',
+          }) as string;
+        }
+      } else {
+        screenshotBuffer = await page.screenshot({
+          type: 'jpeg',
+          quality: 85,
+          encoding: 'base64',
+        }) as string;
+      }
 
       const screenshotBase64 = `data:image/jpeg;base64,${screenshotBuffer}`;
       const base64Size = screenshotBase64.length;

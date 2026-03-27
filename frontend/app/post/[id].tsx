@@ -11,7 +11,8 @@ import { DSDivider } from '@ds/Divider';
 import { DSSkeletonCard } from '@ds/Skeleton';
 import { TweetEmbed } from '@components/feed/TweetEmbed';
 import { VoteButtons } from '@components/feed/VoteButtons';
-import { WaybackButton } from '@components/feed/WaybackButton';
+import { YouTubeEmbed } from '@components/feed/YouTubeEmbed';
+import { DSBadge } from '@ds/Badge';
 import { ErrorState } from '@components/common/ErrorState';
 import { formatFullDate } from '@utils/formatters';
 
@@ -75,50 +76,181 @@ export default function PostDetail() {
                     { paddingBottom: tokens.layout.screenPaddingBottom }
                 ]}
             >
-                <View style={{ gap: tokens.spacing.lg }}>
-                    <View style={styles.detailHeader}>
-                        <DSText size="xl" weight="extraBold" color="textPrimary" style={{ flex: 1 }}>
-                            {post.title}
-                        </DSText>
-                        <DSText size="sm" color="textMuted">
+                <View style={{ gap: tokens.spacing.md }}>
+                    {/* TITLE FIRST */}
+                    <DSText size="xl" weight="extraBold" color="textPrimary">
+                        {post.title}
+                    </DSText>
+
+                    {/* AUTHOR NEXT */}
+                    <View style={styles.topMetaRow}>
+                        <TouchableOpacity activeOpacity={0.7} onPress={handleUserPress} style={styles.authorBadge}>
+                            <DSText size="sm" weight="bold" color="accent">@{post.authorName}</DSText>
+                        </TouchableOpacity>
+                        <DSText size="xs" color="textMuted">
                             {formatFullDate(post.createdAt)}
                         </DSText>
                     </View>
 
-                    <View style={styles.metaRow}>
-                        <TouchableOpacity
-                            style={styles.metaRow}
-                            onPress={handleUserPress}
-                        >
-                            <DSText size="sm" weight="semiBold" color="textMuted">
-                                @{post.authorName}
-                            </DSText>
-                        </TouchableOpacity>
+                    {/* VOTES AND TAGS */}
+                    <View style={styles.interactionRow}>
+                        <VoteButtons postId={post.id} upvotes={post.upvotes} downvotes={post.downvotes} iconSize={24} />
+                        <View style={styles.tagScroll}>
+                            {post.tags?.map(tag => (
+                                <DSBadge
+                                    key={tag}
+                                    label={tag}
+                                    variant="solid"
+                                    onPress={() => router.push({ pathname: '/', params: { tag } })}
+                                />
+                            ))}
+                        </View>
                     </View>
-
-                    <TweetEmbed tweetUrl={post.tweetUrl} html={post.tweetEmbedHtml} />
-
-                    <Markdown style={markdownStyles}>{post.description}</Markdown>
 
                     <DSDivider />
 
-                    <View style={styles.actionRow}>
-                        <VoteButtons postId={post.id} upvotes={post.upvotes} downvotes={post.downvotes} iconSize={18} />
-                        <WaybackButton
-                            waybackUrl={post.waybackUrl}
-                            snapshotScreenshot={post.snapshotScreenshot}
-                        />
+                    {/* TWEET EMBED (Above description) */}
+                    <TweetEmbed tweetUrl={post.tweetUrl} html={post.tweetEmbedHtml} />
+
+                    {/* DESCRIPTION */}
+                    <Markdown style={markdownStyles}>{post.description}</Markdown>
+
+                    {/* VIDEO FEED (Below description) */}
+                    {post.youtubeLink && (
+                        <YouTubeEmbed url={post.youtubeLink} />
+                    )}
+
+                    <DSDivider />
+
+                    {/* SOURCES AND SNAPSHOTS AT END */}
+                    <View style={styles.evidenceSection}>
+                        <DSText size="sm" weight="bold" color="textMuted" style={{ marginBottom: 16 }}>
+                            SOURCES & VERIFICATION
+                        </DSText>
+
+                        {/* Article List */}
+                        {post.articleLinks && post.articleLinks.length > 0 && (
+                            <View style={styles.urlList}>
+                                {post.articleLinks.map((link, idx) => (
+                                    <TouchableOpacity
+                                        key={idx}
+                                        onPress={() => router.push(link as any)}
+                                        style={styles.urlItem}
+                                    >
+                                        <Ionicons name="newspaper-outline" size={16} color={tokens.colors.accent} />
+                                        <DSText size="sm" weight="medium" color="accent" numberOfLines={1} style={{ flex: 1 }}>
+                                            {link}
+                                        </DSText>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        )}
+
+                        {/* Snapshot */}
+                        {post.snapshotScreenshot && (
+                            <TouchableOpacity
+                                activeOpacity={0.9}
+                                style={styles.snapshotSection}
+                                onPress={() => router.push({ pathname: '/post/[id]', params: { id: post.id, showImage: 'true' } })}
+                            >
+                                <DSText size="xs" weight="bold" color="textMuted" style={{ marginBottom: 12 }}>
+                                    INTERNAL ARCHIVE SNAPSHOT (TAP TO EXPAND)
+                                </DSText>
+                                <Image
+                                    source={{ uri: post.snapshotScreenshot }}
+                                    style={styles.snapshotImage}
+                                    resizeMode="contain"
+                                />
+                            </TouchableOpacity>
+                        )}
                     </View>
                 </View>
             </ScrollView>
+
+            {/* EXPANDED IMAGE OVERLAY - OUTSIDE SCROLLVIEW */}
+            {router.canGoBack() && useLocalSearchParams().showImage === 'true' && (
+                <View style={[StyleSheet.absoluteFill, { zIndex: 1000 }]}>
+                    <TouchableOpacity
+                        style={StyleSheet.absoluteFill}
+                        onPress={() => router.back()}
+                    >
+                        <View style={styles.fullImageContainer}>
+                            <Image
+                                source={{ uri: post.snapshotScreenshot! }}
+                                style={{ width: '100%', height: '80%' }}
+                                resizeMode="contain"
+                            />
+                            <DSText color="accentForeground" style={{ marginTop: 20 }}>Tap anywhere to close</DSText>
+                        </View>
+                    </TouchableOpacity>
+                </View>
+            )}
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    detailHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
     content: { paddingHorizontal: 16, paddingVertical: 16 },
-    authorRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-    metaRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-    actionRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    topMetaRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginTop: -4,
+    },
+    authorBadge: {
+        backgroundColor: 'rgba(0,0,0,0.03)',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+    },
+    interactionRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16,
+    },
+    tagScroll: {
+        flex: 1,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 6,
+    },
+    evidenceSection: {
+        marginTop: 12,
+        padding: 16,
+        backgroundColor: 'rgba(0,0,0,0.02)',
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.04)',
+    },
+    urlList: {
+        gap: 8,
+        marginBottom: 20,
+    },
+    urlItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        backgroundColor: 'rgba(0,0,0,0.03)',
+        padding: 12,
+        borderRadius: 12,
+    },
+    snapshotSection: {
+        marginTop: 8,
+        padding: 12,
+        backgroundColor: '#fff',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.05)',
+    },
+    snapshotImage: {
+        width: '100%',
+        aspectRatio: 16 / 9,
+        borderRadius: 8,
+    },
+    fullImageContainer: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.95)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
 });

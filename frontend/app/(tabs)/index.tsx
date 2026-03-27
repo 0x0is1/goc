@@ -1,6 +1,7 @@
-import React, { useCallback } from 'react';
-import { View, FlatList, RefreshControl, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, FlatList, RefreshControl, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useLocalSearchParams, router } from 'expo-router';
 import NetInfo from '@react-native-community/netinfo';
 import { useTheme } from '@contexts/ThemeContext';
 import { DSText } from '@ds/Text';
@@ -17,11 +18,14 @@ import { NavBar } from '@components/common/NavBar';
 
 export default function HomeFeed() {
     const { tokens } = useTheme();
-    const { posts, loading, error, refresh, loadMore } = useFeed();
-    const [isRefreshing, setIsRefreshing] = React.useState(false);
-    const [isOffline, setIsOffline] = React.useState(false);
+    const { tag, sort: sortParam } = useLocalSearchParams<{ tag?: string, sort?: string }>();
+    const initialSort = (sortParam === 'top' ? 'top' : 'latest') as 'latest' | 'top';
 
-    React.useEffect(() => {
+    const { posts, loading, error, refresh, loadMore, sort, tag: activeTag } = useFeed(initialSort, tag || null);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [isOffline, setIsOffline] = useState(false);
+
+    useEffect(() => {
         const unsubscribe = NetInfo.addEventListener((state) => {
             setIsOffline(!state.isConnected);
         });
@@ -67,6 +71,35 @@ export default function HomeFeed() {
         <View style={screenStyle}>
             <NavBar />
             {isOffline && <OfflineBanner />}
+
+            {/* Filter Bar */}
+            <View style={styles.filterBar}>
+                <View style={styles.sortContainer}>
+                    <TouchableOpacity
+                        style={[styles.sortButton, sort === 'latest' && styles.activeSort]}
+                        onPress={() => router.setParams({ sort: 'latest' })}
+                    >
+                        <DSText size="xs" weight="bold" color={sort === 'latest' ? 'accentForeground' : 'textMuted'}>LATEST</DSText>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        style={[styles.sortButton, sort === 'top' && styles.activeSort]}
+                        onPress={() => router.setParams({ sort: 'top' })}
+                    >
+                        <DSText size="xs" weight="bold" color={sort === 'top' ? 'accentForeground' : 'textMuted'}>TOP</DSText>
+                    </TouchableOpacity>
+                </View>
+
+                {activeTag && (
+                    <TouchableOpacity
+                        style={styles.activeTagBadge}
+                        onPress={() => router.setParams({ tag: undefined })}
+                    >
+                        <DSText size="xs" weight="bold" color="accent">#{activeTag.toUpperCase()}</DSText>
+                        <Ionicons name="close-circle" size={14} color={tokens.colors.accent} />
+                    </TouchableOpacity>
+                )}
+            </View>
+
             <FlatList
                 data={posts}
                 renderItem={renderItem}
@@ -93,3 +126,40 @@ export default function HomeFeed() {
     );
 }
 
+const styles = StyleSheet.create({
+    filterBar: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        gap: 12,
+        backgroundColor: 'rgba(0,0,0,0.02)',
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(0,0,0,0.05)',
+    },
+    sortContainer: {
+        flexDirection: 'row',
+        backgroundColor: 'rgba(0,0,0,0.05)',
+        borderRadius: 20,
+        padding: 2,
+    },
+    sortButton: {
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 18,
+    },
+    activeSort: {
+        backgroundColor: '#000',
+    },
+    activeTagBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        backgroundColor: 'rgba(0,0,0,0.03)',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.1)',
+    }
+});

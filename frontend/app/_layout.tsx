@@ -16,11 +16,12 @@ import {
 import * as SplashScreen from 'expo-splash-screen';
 import * as Notifications from 'expo-notifications';
 import { ThemeProvider, useTheme } from '@contexts/ThemeContext';
-import { AuthProvider } from '@contexts/AuthContext';
+import { AuthProvider, useAuthContext } from '@contexts/AuthContext';
 import { ToastProvider } from '@contexts/ToastContext';
 import { registerBackgroundFetchAsync } from '@tasks/backgroundCheck';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFeed } from '@services/api';
+import { AnimatedSplashScreen } from '@components/common/AnimatedSplashScreen';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -36,6 +37,7 @@ Notifications.setNotificationHandler({
 
 function RootLayoutInner() {
     const { tokens, colorMode } = useTheme();
+    const { user, loading: authLoading } = useAuthContext();
     const [fontsLoaded] = useFonts({
         PlusJakartaSans_400Regular,
         PlusJakartaSans_500Medium,
@@ -44,23 +46,33 @@ function RootLayoutInner() {
         PlusJakartaSans_800ExtraBold,
     });
 
+    const [animationComplete, setAnimationComplete] = React.useState(false);
+
     useEffect(() => {
         if (fontsLoaded) {
+            // Hide the static expo splash screen as soon as fonts are ready
+            // We'll show our animated splash screen over the content
             SplashScreen.hideAsync();
         }
     }, [fontsLoaded]);
 
+    // Conditional Background Task Registration
     useEffect(() => {
-        Notifications.requestPermissionsAsync();
-        registerBackgroundFetchAsync();
-    }, []);
+        if (user && !authLoading) {
+            console.log('[Layout] User detected, registering background tasks...');
+            Notifications.requestPermissionsAsync();
+            registerBackgroundFetchAsync();
+        }
+    }, [user, authLoading]);
 
-    // Sync last seen post ID whenever app becomes active or on mount
+    // Sync last seen post ID when authorized
     useEffect(() => {
+        if (!user) return;
+
         const syncLastSeen = async () => {
             try {
                 const { posts } = await getFeed();
-                if (posts.length > 0) {
+                if (posts && posts.length > 0) {
                     await AsyncStorage.setItem('last_seen_post_id', posts[0].id);
                 }
             } catch (err) {
@@ -68,13 +80,18 @@ function RootLayoutInner() {
             }
         };
         syncLastSeen();
-    }, []);
+    }, [user]);
 
     if (!fontsLoaded) return null;
 
     return (
         <View style={{ flex: 1, backgroundColor: tokens.colors.background }}>
             <StatusBar style={colorMode === 'dark' ? 'light' : 'dark'} />
+
+            {!animationComplete && (
+                <AnimatedSplashScreen onAnimationComplete={() => setAnimationComplete(true)} />
+            )}
+
             <Stack
                 screenOptions={{
                     headerShown: false,

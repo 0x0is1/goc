@@ -59,8 +59,8 @@ export default function ProfileScreen() {
     const handleTestNotification = async () => {
         await Notifications.scheduleNotificationAsync({
             content: {
-                title: '🔔 Test Notification',
-                body: 'This is a test notification to verify GOC background service! 🚀',
+                title: 'Test Notification',
+                body: 'This is a test notification to verify GOC background service!',
                 data: { url: '/(tabs)/' },
             },
             trigger: null,
@@ -123,18 +123,21 @@ export default function ProfileScreen() {
                         <DSText size="sm" color="textMuted">Upvotes</DSText>
                     </View>
                 </View>
-                <DSButton
-                    label="Sign Out"
-                    onPress={() => signOut()}
-                    variant="solid"
-                    fullWidth
-                    accessibilityLabel="Sign out of your account"
-                />
+                <View style={{ paddingHorizontal: tokens.spacing.lg, marginBottom: tokens.spacing.md }}>
+                    <DSButton
+                        label="Sign Out"
+                        onPress={() => signOut()}
+                        variant="outline"
+                        fullWidth
+                        leftIcon={<Ionicons name="log-out-outline" size={18} color={tokens.colors.textPrimary} />}
+                        accessibilityLabel="Sign out of your account"
+                    />
+                </View>
                 <DSDivider style={{ marginVertical: tokens.spacing.md, marginHorizontal: tokens.spacing.md }} />
                 <DSText size="md" weight="bold" color="textPrimary" style={{ marginBottom: tokens.spacing.md, marginHorizontal: tokens.spacing.md }}>
                     My Gems
                 </DSText>
-                <View style={{ marginHorizontal: tokens.spacing.sm, gap: tokens.spacing.sm }}>
+                <View style={{ gap: 0 }}>
                     {posts.map((post) => <FeedCard key={post.id} post={post} />)}
                 </View>
                 <View style={{ height: tokens.spacing.xl }} />
