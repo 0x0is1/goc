@@ -1,4 +1,3 @@
-/* eslint-disable */
 const fs = require('fs');
 require('dotenv').config();
 
@@ -18,7 +17,7 @@ module.exports = {
     expo: {
         name: "Gems of Congress",
         slug: "gems-of-congress",
-        version: "0.1.4",
+        version: "0.1.5",
         orientation: "portrait",
         userInterfaceStyle: "automatic",
         icon: "./assets/icon.png",
@@ -59,7 +58,7 @@ module.exports = {
             policy: "appVersion"
         },
         extra: {
-            apiUrl: "http://localhost:3000",
+            apiUrl: "https://goc-backend.onrender.com",
             router: {},
             eas: {
                 projectId: "7bcc063d-09b8-4a12-a726-91c5bb3e97be"
