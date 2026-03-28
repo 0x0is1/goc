@@ -10,7 +10,7 @@ interface CreatePostHook {
     fieldErrors: FieldErrors;
     submitting: boolean;
     setField: (key: keyof CreatePostFields, value: string | boolean) => void;
-    submit: () => Promise<void>;
+    submit: () => Promise<boolean>;
 }
 
 export function useCreatePost(): CreatePostHook {
@@ -41,7 +41,7 @@ export function useCreatePost(): CreatePostHook {
                 errs[key] = issue.message;
             });
             setFieldErrors(errs);
-            return;
+            return false;
         }
         setSubmitting(true);
         try {
@@ -59,8 +59,10 @@ export function useCreatePost(): CreatePostHook {
             });
             showToast('Gem published!', 'success');
             router.replace('/');
+            return true;
         } catch {
             showToast('Failed to publish. Try again.', 'error');
+            return false;
         } finally {
             setSubmitting(false);
         }

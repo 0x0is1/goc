@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@contexts/ThemeContext';
 import { DSText } from '@ds/Text';
 import { WAYBACK_LOGO_SIZE } from '@utils/constants';
+import { useFeedback } from '@contexts/FeedbackContext';
 
 interface WaybackButtonProps {
     waybackUrl?: string;
@@ -15,15 +16,11 @@ interface WaybackButtonProps {
 export function WaybackButton({ waybackUrl, snapshotScreenshot }: WaybackButtonProps) {
     const { tokens } = useTheme();
     const [visible, setVisible] = useState(false);
+    const { playClick, playTick } = useFeedback();
 
     async function handlePress() {
         console.log('[WaybackButton] Press. snapshot:', !!snapshotScreenshot, 'url:', !!waybackUrl);
-        try {
-            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        } catch (e) {
-            // Ignore haptic errors on emulators/unsupported devices
-        }
-
+        playClick();
         if (snapshotScreenshot) {
             setVisible(true);
         } else if (waybackUrl) {
@@ -64,7 +61,10 @@ export function WaybackButton({ waybackUrl, snapshotScreenshot }: WaybackButtonP
                     <View style={styles.modalContent}>
                         <Pressable
                             style={styles.closeBtn}
-                            onPress={() => setVisible(false)}
+                            onPress={() => {
+                                playTick();
+                                setVisible(false);
+                            }}
                         >
                             <Ionicons name="close-circle" size={40} color="white" />
                         </Pressable>

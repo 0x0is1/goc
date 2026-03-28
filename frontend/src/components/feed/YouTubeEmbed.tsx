@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Pressable, Image, Linking } from 'react-native';
 import WebView from 'react-native-webview';
 import { useTheme } from '@contexts/ThemeContext';
+import { useFeedback } from '@contexts/FeedbackContext';
 
 interface YouTubeEmbedProps {
     url: string;
@@ -10,6 +11,7 @@ interface YouTubeEmbedProps {
 export function YouTubeEmbed({ url }: YouTubeEmbedProps) {
     const { tokens } = useTheme();
     const [loaded, setLoaded] = useState(false);
+    const { playClick } = useFeedback();
 
     const getYoutubeId = (url: string) => {
         try {
@@ -60,8 +62,11 @@ export function YouTubeEmbed({ url }: YouTubeEmbedProps) {
             </head>
             <body>
                 <iframe
-                    src="https://www.youtube-nocookie.com/embed/${videoId}?playsinline=1&rel=0&modestbranding=1&enablejsapi=1&origin=https://localhost"
-                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                    src="https://www.youtube.com/embed/${videoId}?rel=0&autoplay=1&playsinline=1"
+                    title="YouTube video player"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin"
                     allowfullscreen
                 ></iframe>
             </body>
@@ -72,7 +77,10 @@ export function YouTubeEmbed({ url }: YouTubeEmbedProps) {
         <View style={[styles.container, { backgroundColor: tokens.colors.surface2 }]}>
             {!loaded ? (
                 <Pressable
-                    onPress={() => setLoaded(true)}
+                    onPress={() => {
+                        playClick();
+                        setLoaded(true);
+                    }}
                     style={styles.thumbnailWrapper}
                 >
                     <Image source={{ uri: thumbnail }} style={styles.thumbnail} />
@@ -89,7 +97,6 @@ export function YouTubeEmbed({ url }: YouTubeEmbedProps) {
                     userAgent="Mozilla/5.0 (Linux; Android 10; Mobile) AppleWebKit/537.36 Chrome/120 Safari/537.36"
 
                     onError={() => {
-                        // 🔥 Fallback if embed fails (fixes 153 permanently)
                         Linking.openURL(url);
                     }}
 

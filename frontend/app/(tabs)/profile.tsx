@@ -18,11 +18,13 @@ import { Post } from '@appTypes/index';
 
 import { NavBar } from '@components/common/NavBar';
 import { TouchableOpacity } from 'react-native';
+import { useFeedback } from '@contexts/FeedbackContext';
 
 export default function ProfileScreen() {
     const { tokens, colorMode, toggleTheme } = useTheme();
     const { user, signOut } = useAuthContext();
     const { posts, totalUpvotes, loading } = useProfile(user?.uid ?? '');
+    const { playClick, playTick } = useFeedback();
 
     const screenStyle = {
         flex: 1,
@@ -32,7 +34,7 @@ export default function ProfileScreen() {
     if (!user) {
         return (
             <View style={[screenStyle, styles.centered]}>
-                <NavBar />
+                <NavBar title='My Profile' />
                 <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16 }}>
                     <Ionicons name="search-outline" size={80} color={tokens.colors.textMuted} />
                     <DSText size="xl" weight="extraBold" color="textPrimary">Join the Conversation</DSText>
@@ -69,14 +71,20 @@ export default function ProfileScreen() {
 
     const navRight = (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <TouchableOpacity onPress={handleTestNotification} style={{ padding: 4 }}>
+            <TouchableOpacity onPress={() => {
+                playClick();
+                handleTestNotification();
+            }} style={{ padding: 4 }}>
                 <Ionicons
                     name="notifications-outline"
                     size={22}
                     color={tokens.colors.textPrimary}
                 />
             </TouchableOpacity>
-            <TouchableOpacity onPress={toggleTheme} style={{ padding: 4 }}>
+            <TouchableOpacity onPress={() => {
+                playTick();
+                toggleTheme();
+            }} style={{ padding: 4 }}>
                 <Ionicons
                     name={colorMode === 'dark' ? 'sunny-outline' : 'moon-outline'}
                     size={22}
@@ -89,7 +97,7 @@ export default function ProfileScreen() {
     if (loading && posts.length === 0) {
         return (
             <View style={screenStyle}>
-                <NavBar rightElement={navRight} />
+                <NavBar rightElement={navRight} title='My Profile' />
                 <View style={styles.scrollContent}>
                     <DSSkeletonCard />
                     <DSSkeletonCard />
@@ -101,7 +109,7 @@ export default function ProfileScreen() {
 
     return (
         <View style={screenStyle}>
-            <NavBar rightElement={navRight} />
+            <NavBar rightElement={navRight} title='My Profile' />
             <ScrollView
                 contentContainerStyle={[
                     styles.scrollContent,

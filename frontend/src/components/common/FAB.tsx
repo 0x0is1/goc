@@ -7,14 +7,16 @@ import { useAuthContext } from '@contexts/AuthContext';
 import { useToastContext } from '@contexts/ToastContext';
 import { useTheme } from '@contexts/ThemeContext';
 import { FAB_SIZE, FAB_BOTTOM_OFFSET, FAB_RIGHT_OFFSET } from '@utils/constants';
+import { useFeedback } from '@contexts/FeedbackContext';
 
 export function FAB() {
     const { tokens } = useTheme();
     const { user } = useAuthContext();
     const { showToast } = useToastContext();
+    const { playClick } = useFeedback();
 
     async function handlePress() {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        playClick();
         if (user) {
             router.push('/create');
         } else {

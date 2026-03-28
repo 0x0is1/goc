@@ -9,6 +9,7 @@ import Animated, {
     withSpring
 } from 'react-native-reanimated';
 import { useTheme } from '@contexts/ThemeContext';
+import { useFeedback } from '@contexts/FeedbackContext';
 import { DSText } from '@ds/Text';
 import { useVote } from '@hooks/useVote';
 import { VoteType } from '@appTypes/index';
@@ -30,6 +31,8 @@ export function VoteButtons({ postId, upvotes, downvotes, iconSize = 18 }: VoteB
     const upStyle = useAnimatedStyle(() => ({ transform: [{ scale: upScale.value }] }));
     const downStyle = useAnimatedStyle(() => ({ transform: [{ scale: downScale.value }] }));
 
+    const { playSuccess, playClick } = useFeedback();
+
     async function handleVote(type: VoteType) {
         const scale = type === 'up' ? upScale : downScale;
         scale.value = withSequence(
@@ -37,7 +40,11 @@ export function VoteButtons({ postId, upvotes, downvotes, iconSize = 18 }: VoteB
             withSpring(1, { damping: 10, stiffness: 100 })
         );
 
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        if (type !== currentVote && type !== null) {
+            playSuccess();
+        } else {
+            playClick();
+        }
         vote(type);
     }
 

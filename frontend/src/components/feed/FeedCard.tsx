@@ -14,6 +14,7 @@ import { useRelativeTime } from '@hooks/useRelativeTime';
 import { useAuthContext } from '@contexts/AuthContext';
 import { Post } from '@appTypes/index';
 import { DSBadge } from '@ds/Badge';
+import { useFeedback } from '@contexts/FeedbackContext';
 
 interface FeedCardProps {
   post: Post;
@@ -23,8 +24,10 @@ export function FeedCard({ post }: FeedCardProps) {
   const { tokens } = useTheme();
   const { user } = useAuthContext();
   const relativeTime = useRelativeTime(post.createdAt);
+  const { playTick } = useFeedback();
 
   const handleUserPress = () => {
+    playTick();
     if (post.authorId === user?.uid) {
       router.push('/profile');
     } else {
@@ -49,7 +52,10 @@ export function FeedCard({ post }: FeedCardProps) {
 
         <TouchableOpacity
           activeOpacity={0.7}
-          onPress={() => router.push(`/post/${post.id}`)}
+          onPress={() => {
+            playTick();
+            router.push(`/post/${post.id}`);
+          }}
         >
           <View style={styles.headerRow}>
             <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>

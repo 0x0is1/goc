@@ -18,7 +18,9 @@ import * as Notifications from 'expo-notifications';
 import { ThemeProvider, useTheme } from '@contexts/ThemeContext';
 import { AuthProvider, useAuthContext } from '@contexts/AuthContext';
 import { ToastProvider } from '@contexts/ToastContext';
+import { FeedbackProvider, useFeedback } from '@contexts/FeedbackContext';
 import { registerBackgroundFetchAsync } from '@tasks/backgroundCheck';
+import { usePathname } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getFeed } from '@services/api';
 import { AnimatedSplashScreen } from '@components/common/AnimatedSplashScreen';
@@ -38,6 +40,9 @@ Notifications.setNotificationHandler({
 function RootLayoutInner() {
     const { tokens, colorMode } = useTheme();
     const { user, loading: authLoading } = useAuthContext();
+    const { playTick } = useFeedback();
+    const pathname = usePathname();
+
     const [fontsLoaded] = useFonts({
         PlusJakartaSans_400Regular,
         PlusJakartaSans_500Medium,
@@ -50,13 +55,17 @@ function RootLayoutInner() {
 
     useEffect(() => {
         if (fontsLoaded) {
-            // Hide the static expo splash screen as soon as fonts are ready
-            // We'll show our animated splash screen over the content
             SplashScreen.hideAsync();
         }
     }, [fontsLoaded]);
 
-    // Conditional Background Task Registration
+    useEffect(() => {
+        // Trigger subtle haptic on screen change
+        if (fontsLoaded && pathname) {
+            playTick();
+        }
+    }, [pathname]);
+
     useEffect(() => {
         if (user && !authLoading) {
             console.log('[Layout] User detected, registering background tasks...');
@@ -65,7 +74,6 @@ function RootLayoutInner() {
         }
     }, [user, authLoading]);
 
-    // Sync last seen post ID when authorized
     useEffect(() => {
         if (!user) return;
 
@@ -109,11 +117,13 @@ export default function RootLayout() {
             <SafeAreaProvider>
                 <ThemeProvider>
                     <AuthProvider>
-                        <ToastProvider>
-                            <KeyboardProvider>
-                                <RootLayoutInner />
-                            </KeyboardProvider>
-                        </ToastProvider>
+                        <FeedbackProvider>
+                            <ToastProvider>
+                                <KeyboardProvider>
+                                    <RootLayoutInner />
+                                </KeyboardProvider>
+                            </ToastProvider>
+                        </FeedbackProvider>
                     </AuthProvider>
                 </ThemeProvider>
             </SafeAreaProvider>

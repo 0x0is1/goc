@@ -5,6 +5,8 @@ import { router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@contexts/ThemeContext';
 import { DSText } from '@ds/Text';
+import { Image } from 'expo-image';
+import { useFeedback } from '@contexts/FeedbackContext';
 
 interface NavBarProps {
     title?: string;
@@ -15,6 +17,7 @@ interface NavBarProps {
 export function NavBar({ title, showBack, rightElement }: NavBarProps) {
     const { tokens } = useTheme();
     const insets = useSafeAreaInsets();
+    const { playTick } = useFeedback();
 
     return (
         <View style={[
@@ -30,7 +33,10 @@ export function NavBar({ title, showBack, rightElement }: NavBarProps) {
                 <View style={styles.left}>
                     {showBack ? (
                         <TouchableOpacity
-                            onPress={() => router.back()}
+                            onPress={() => {
+                                playTick();
+                                router.back();
+                            }}
                             style={styles.iconBtn}
                             accessibilityLabel="Go back"
                         >
@@ -38,7 +44,7 @@ export function NavBar({ title, showBack, rightElement }: NavBarProps) {
                         </TouchableOpacity>
                     ) : (
                         <View style={styles.brandRow}>
-                            <Ionicons name="diamond" size={24} color={tokens.colors.brand} />
+                            <Image source={require('../../../assets/splash-icon.png')} style={styles.icon} />
                         </View>
                     )}
                 </View>
@@ -98,5 +104,9 @@ const styles = StyleSheet.create({
     iconBtn: {
         padding: 4,
         marginLeft: -4,
+    },
+    icon: {
+        width: 32,
+        height: 32,
     }
 });

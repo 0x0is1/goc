@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, ViewStyle, TouchableOpacity } from 'react-native';
 import { useTheme } from '@contexts/ThemeContext';
+import { useFeedback } from '@contexts/FeedbackContext';
 import { DSText } from './Text';
 
 interface DSBadgeProps {
@@ -61,9 +62,17 @@ export function DSBadge({ label, variant = 'solid', color, onPress, style }: DSB
         </View>
     );
 
+    const { playTick } = useFeedback();
+
     if (onPress) {
         return (
-            <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
+            <TouchableOpacity
+                onPress={() => {
+                    playTick();
+                    onPress();
+                }}
+                activeOpacity={0.7}
+            >
                 {content}
             </TouchableOpacity>
         );

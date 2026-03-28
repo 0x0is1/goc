@@ -17,6 +17,7 @@ import { ErrorState } from '@components/common/ErrorState';
 import { formatFullDate } from '@utils/formatters';
 
 import { NavBar } from '@components/common/NavBar';
+import { useFeedback } from '@contexts/FeedbackContext';
 
 import { useAuthContext } from '@contexts/AuthContext';
 
@@ -25,6 +26,7 @@ export default function PostDetail() {
     const { tokens } = useTheme();
     const { user } = useAuthContext();
     const { post, loading, error } = usePost(id ?? '');
+    const { playClick, playTick } = useFeedback();
 
     const handleUserPress = () => {
         if (post?.authorId === user?.uid) {
@@ -84,7 +86,10 @@ export default function PostDetail() {
 
                     {/* AUTHOR NEXT */}
                     <View style={styles.topMetaRow}>
-                        <TouchableOpacity activeOpacity={0.7} onPress={handleUserPress} style={styles.authorBadge}>
+                        <TouchableOpacity activeOpacity={0.7} onPress={() => {
+                            playTick();
+                            handleUserPress();
+                        }} style={styles.authorBadge}>
                             <DSText size="sm" weight="bold" color="accent">@{post.authorName}</DSText>
                         </TouchableOpacity>
                         <DSText size="xs" color="textMuted">
@@ -134,7 +139,10 @@ export default function PostDetail() {
                                 {post.articleLinks.map((link, idx) => (
                                     <TouchableOpacity
                                         key={idx}
-                                        onPress={() => router.push(link as any)}
+                                        onPress={() => {
+                                            playClick();
+                                            router.push(link as any);
+                                        }}
                                         style={styles.urlItem}
                                     >
                                         <Ionicons name="newspaper-outline" size={16} color={tokens.colors.accent} />
@@ -151,7 +159,10 @@ export default function PostDetail() {
                             <TouchableOpacity
                                 activeOpacity={0.9}
                                 style={styles.snapshotSection}
-                                onPress={() => router.push({ pathname: '/post/[id]', params: { id: post.id, showImage: 'true' } })}
+                                onPress={() => {
+                                    playClick();
+                                    router.push({ pathname: '/post/[id]', params: { id: post.id, showImage: 'true' } });
+                                }}
                             >
                                 <DSText size="xs" weight="bold" color="textMuted" style={{ marginBottom: 12 }}>
                                     INTERNAL ARCHIVE SNAPSHOT (TAP TO EXPAND)
@@ -172,7 +183,10 @@ export default function PostDetail() {
                 <View style={[StyleSheet.absoluteFill, { zIndex: 1000 }]}>
                     <TouchableOpacity
                         style={StyleSheet.absoluteFill}
-                        onPress={() => router.back()}
+                        onPress={() => {
+                            playTick();
+                            router.back();
+                        }}
                     >
                         <View style={styles.fullImageContainer}>
                             <Image

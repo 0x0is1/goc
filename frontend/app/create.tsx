@@ -15,12 +15,14 @@ import { TITLE_MAX_CHARS } from '@utils/constants';
 
 
 import { NavBar } from '@components/common/NavBar';
+import { useFeedback } from '@contexts/FeedbackContext';
 
 export default function CreatePost() {
     const { tokens } = useTheme();
     const { user } = useAuthContext();
     const { fields, fieldErrors, submitting, setField, submit } = useCreatePost();
     const [previewMode, setPreviewMode] = useState(false);
+    const { playClick, playTick, playSuccess } = useFeedback();
 
     useEffect(() => {
         if (!user) {
@@ -95,7 +97,10 @@ export default function CreatePost() {
                                     size="sm"
                                     weight="semiBold"
                                     color={!previewMode ? 'accent' : 'textMuted'}
-                                    onPress={() => setPreviewMode(false)}
+                                    onPress={() => {
+                                        playTick();
+                                        setPreviewMode(false);
+                                    }}
                                 >
                                     Write
                                 </DSText>
@@ -109,7 +114,10 @@ export default function CreatePost() {
                                     size="sm"
                                     weight="semiBold"
                                     color={previewMode ? 'accent' : 'textMuted'}
-                                    onPress={() => setPreviewMode(true)}
+                                    onPress={() => {
+                                        playTick();
+                                        setPreviewMode(true);
+                                    }}
                                 >
                                     Preview
                                 </DSText>
@@ -137,6 +145,7 @@ export default function CreatePost() {
                         <View style={styles.titleRow}>
                             <DSText size="sm" weight="medium" color="textMuted">Article / Source Links</DSText>
                             <TouchableOpacity onPress={() => {
+                                playClick();
                                 const newLinks = [...(fields.articleLinks || []), ''];
                                 setField('articleLinks', newLinks as any);
                             }}>
@@ -161,6 +170,7 @@ export default function CreatePost() {
                                 </View>
                                 {fields.articleLinks && fields.articleLinks.length > 1 && (
                                     <TouchableOpacity onPress={() => {
+                                        playClick();
                                         const newLinks = fields.articleLinks!.filter((_, i) => i !== index);
                                         setField('articleLinks', newLinks as any);
                                     }}>
@@ -216,7 +226,10 @@ export default function CreatePost() {
 
                     <DSButton
                         label="Publish Gem"
-                        onPress={submit}
+                        onPress={async () => {
+                            const success = await submit();
+                            if (success) playSuccess();
+                        }}
                         variant="solid"
                         fullWidth
                         loading={submitting}

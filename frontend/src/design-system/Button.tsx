@@ -6,6 +6,7 @@ import Animated, {
     withSpring,
 } from 'react-native-reanimated';
 import { useTheme } from '@contexts/ThemeContext';
+import { useFeedback } from '@contexts/FeedbackContext';
 import { DSText } from '@ds/Text';
 
 type ButtonVariant = 'solid' | 'outline' | 'ghost';
@@ -58,10 +59,17 @@ export function DSButton({
             : variant === 'ghost' ? 'danger'
                 : 'textPrimary';
 
+    const { playClick } = useFeedback();
+
+    const handlePress = () => {
+        playClick();
+        onPress();
+    };
+
     return (
         <TouchableOpacity
             activeOpacity={0.8}
-            onPress={onPress}
+            onPress={handlePress}
             onPressIn={() => (scale.value = withSpring(0.96))}
             onPressOut={() => (scale.value = withSpring(1))}
             style={containerStyle}

@@ -11,11 +11,11 @@ export default function InfoScreen() {
     const { tokens } = useTheme();
 
     const handleContact = () => {
-        Linking.openURL('mailto:support@gemsofcongress.com');
+        Linking.openURL('mailto:0x0is1@proton.me');
     };
 
     const handleFeedback = () => {
-        Linking.openURL('https://forms.gle/your-feedback-form'); // Placeholder
+        Linking.openURL('https://forms.gle/L5mRtpaS7YBXTByY9');
     };
 
     const Section = ({ title, icon, children }: { title: string, icon: any, children: React.ReactNode }) => (
@@ -77,7 +77,7 @@ export default function InfoScreen() {
 
                 <View style={styles.footer}>
                     <DSText size="xs" color="textMuted">Version 0.1.4</DSText>
-                    <DSText size="xs" color="textMuted">© 2026 Gems of Congress</DSText>
+                    <DSText size="xs" color="textMuted">© 2026 Algocry</DSText>
                 </View>
             </ScrollView>
         </View>

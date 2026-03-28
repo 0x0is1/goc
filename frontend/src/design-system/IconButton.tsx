@@ -1,6 +1,7 @@
 import React from 'react';
 import { TouchableOpacity, ViewStyle } from 'react-native';
 import { useTheme } from '@contexts/ThemeContext';
+import { useFeedback } from '@contexts/FeedbackContext';
 
 interface DSIconButtonProps {
     onPress: () => void;
@@ -18,9 +19,16 @@ export function DSIconButton({ onPress, icon, size = 36, accessibilityLabel, sty
         alignItems: 'center',
         justifyContent: 'center',
     };
+    const { playClick } = useFeedback();
+
+    const handlePress = () => {
+        playClick();
+        onPress();
+    };
+
     return (
         <TouchableOpacity
-            onPress={onPress}
+            onPress={handlePress}
             style={[btnStyle, style]}
             accessibilityLabel={accessibilityLabel}
             accessibilityRole="button"
