@@ -35,7 +35,7 @@ module.exports = {
         android: {
             package: "com.nys.gemsofcongress",
             adaptiveIcon: {
-                foregroundImage: "./assets/android-icon-foreground.png",
+                foregroundImage: "./assets/adaptive-icon.png",
                 backgroundColor: "#0A0A0A"
             },
             googleServicesFile: "./google-services.json"
