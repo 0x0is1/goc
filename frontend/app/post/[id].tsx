@@ -97,10 +97,10 @@ export default function PostDetail() {
                         </DSText>
                     </View>
 
-                    {/* VOTES AND TAGS */}
-                    <View style={styles.interactionRow}>
+                    {/* VOTES AND TAGS (Vertical Stack) */}
+                    <View style={styles.interactionColumn}>
                         <VoteButtons postId={post.id} upvotes={post.upvotes} downvotes={post.downvotes} iconSize={24} />
-                        <View style={styles.tagScroll}>
+                        <View style={styles.tagList}>
                             {post.tags?.map(tag => (
                                 <DSBadge
                                     key={tag}
@@ -217,16 +217,15 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
         borderRadius: 12,
     },
-    interactionRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 16,
+    interactionColumn: {
+        flexDirection: 'column',
+        alignItems: 'flex-start',
+        gap: 12,
     },
-    tagScroll: {
-        flex: 1,
+    tagList: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 6,
+        gap: 8,
     },
     evidenceSection: {
         marginTop: 12,

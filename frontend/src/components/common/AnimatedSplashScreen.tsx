@@ -86,10 +86,10 @@ export const AnimatedSplashScreen: React.FC<Props> = ({ onAnimationComplete }) =
 
                 <Animated.View style={[styles.branding, contentAnimatedStyle]}>
                     <DSText size="2xl" weight="bold" color="textPrimary" style={styles.title}>
-                        GoC
+                        Black Hands
                     </DSText>
                     <DSText size="sm" weight="medium" color="textMuted" style={styles.subtitle}>
-                        Exposing Deceptive Scams of INC
+                        Exposing Deceptism of Pre 2014 Era
                     </DSText>
                 </Animated.View>
 

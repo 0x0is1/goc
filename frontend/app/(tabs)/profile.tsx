@@ -60,7 +60,7 @@ export default function ProfileScreen() {
         await Notifications.scheduleNotificationAsync({
             content: {
                 title: 'Test Notification',
-                body: 'This is a test notification to verify GOC background service!',
+                body: 'This is a test notification to verify BH background service!',
                 data: { url: '/(tabs)/' },
             },
             trigger: null,

@@ -48,3 +48,6 @@ fb.json
 new_app.json
 secret.txt
 web_app.json
+backend/scraped_posts.json
+backend/scripts/**
+scraped_posts.json

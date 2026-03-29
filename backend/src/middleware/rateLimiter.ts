@@ -21,6 +21,7 @@ export const postCreateLimiter = rateLimit({
     max: env.POST_RATE_LIMIT_MAX,
     standardHeaders: true,
     legacyHeaders: false,
+    skip: (req: any) => req.user?.uid === 'migration_admin',
     handler: (_req, res) => {
         res.status(429).json(rateLimitJson('Post creation rate limit exceeded'));
     },

@@ -35,7 +35,7 @@ module.exports = {
         android: {
             package: "com.nys.gemsofcongress",
             adaptiveIcon: {
-                foregroundImage: "./assets/splash-icon.png",
+                foregroundImage: "./assets/icon.png",
                 backgroundColor: "#0A0A0A"
             },
             googleServicesFile: "./google-services.json"
@@ -46,7 +46,7 @@ module.exports = {
             [
                 "expo-notifications",
                 {
-                    "icon": "./assets/splash-icon.png",
+                    "icon": "./assets/icon.png",
                     "color": "#E63946"
                 }
             ],
