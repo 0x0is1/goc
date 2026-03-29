@@ -9,6 +9,7 @@ interface DSBadgeProps {
     variant?: 'solid' | 'outline';
     color?: string;
     onPress?: () => void;
+    size?: 'sm' | 'md';
     style?: ViewStyle;
 }
 
@@ -32,7 +33,7 @@ function getDeterministicColor(text: string): string {
     return PRESET_COLORS[index];
 }
 
-export function DSBadge({ label, variant = 'solid', color, onPress, style }: DSBadgeProps) {
+export function DSBadge({ label, variant = 'solid', color, onPress, style, size = 'md' }: DSBadgeProps) {
     const { tokens } = useTheme();
 
     // Use provided color, or map semantic names, or generate deterministic color
@@ -44,9 +45,9 @@ export function DSBadge({ label, variant = 'solid', color, onPress, style }: DSB
         borderWidth: 1,
         borderColor: variant === 'outline' ? bgColor : 'transparent',
         backgroundColor: variant === 'solid' ? bgColor : 'transparent',
-        paddingHorizontal: tokens.spacing.sm,
-        paddingVertical: 2,
-        borderRadius: tokens.radius.sm,
+        paddingHorizontal: size === 'sm' ? tokens.spacing.xs : tokens.spacing.sm,
+        paddingVertical: size === 'sm' ? 1 : 2,
+        borderRadius: size === 'sm' ? tokens.radius.sm : tokens.radius.sm,
         alignSelf: 'flex-start',
     };
 

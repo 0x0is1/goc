@@ -71,14 +71,18 @@ export function FeedCard({ post }: FeedCardProps) {
           {/* Tags */}
           {post.tags && post.tags.length > 0 && (
             <View style={styles.tagContainer}>
-              {post.tags.map(tag => (
+              {post.tags.slice(0, 3).map(tag => (
                 <DSBadge
                   key={tag}
                   label={tag}
                   variant="solid"
+                  size="sm"
                   onPress={() => router.push({ pathname: '/', params: { tag } })}
                 />
               ))}
+              {post.tags.length > 3 && (
+                <DSText size="xs" color="textMuted">+{post.tags.length - 3}</DSText>
+              )}
             </View>
           )}
 

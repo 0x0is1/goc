@@ -106,6 +106,7 @@ export default function PostDetail() {
                                     key={tag}
                                     label={tag}
                                     variant="solid"
+                                    size="sm"
                                     onPress={() => router.push({ pathname: '/', params: { tag } })}
                                 />
                             ))}

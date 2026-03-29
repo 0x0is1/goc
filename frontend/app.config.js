@@ -71,7 +71,10 @@ module.exports = {
             firebaseAppId: process.env.EXPO_PUBLIC_FIREBASE_APP_ID
         },
         updates: {
-            url: "https://u.expo.dev/7bcc063d-09b8-4a12-a726-91c5bb3e97be"
+            url: "https://u.expo.dev/7bcc063d-09b8-4a12-a726-91c5bb3e97be",
+            fallbackToCacheTimeout: 0,
+            checkOnLaunch: 'always',
+            channel: "preview"
         }
     }
 };
