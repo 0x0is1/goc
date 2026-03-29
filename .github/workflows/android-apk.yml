@@ -14,7 +14,6 @@ on:
       - "frontend/package-lock.json"
       - "frontend/babel.config.js"
       - "frontend/metro.config.js"
-      - ".github/workflows/android-apk.yml"
   workflow_dispatch:
 
 jobs:
@@ -93,7 +92,7 @@ jobs:
             --profile development \
             --local \
             --non-interactive \
-            --output ./gems-dev.apk
+            --output ./black-hands-dev.apk
 
       - name: Build Preview APK
         env:
@@ -115,26 +114,26 @@ jobs:
             --profile preview \
             --local \
             --non-interactive \
-            --output ./gems-preview.apk
+            --output ./black-hands-preview.apk
 
       - name: Upload Development APK
         uses: actions/upload-artifact@v4
         with:
-          name: gems-dev-apk
-          path: ./frontend/gems-dev.apk
+          name: black-hands-dev-apk
+          path: ./frontend/black-hands-dev.apk
           retention-days: 30
 
       - name: Upload Preview APK
         uses: actions/upload-artifact@v4
         with:
-          name: gems-preview-apk
-          path: ./frontend/gems-preview.apk
+          name: black-hands-preview-apk
+          path: ./frontend/black-hands-preview.apk
           retention-days: 30
 
       - name: Summary
         run: |
-          DEV_SIZE=$(du -h ./frontend/gems-dev.apk | cut -f1)
-          PREVIEW_SIZE=$(du -h ./frontend/gems-preview.apk | cut -f1)
+          DEV_SIZE=$(du -h ./frontend/black-hands-dev.apk | cut -f1)
+          PREVIEW_SIZE=$(du -h ./frontend/black-hands-preview.apk | cut -f1)
           echo "## APK Builds Complete" >> $GITHUB_STEP_SUMMARY
           echo "| Profile | Size |" >> $GITHUB_STEP_SUMMARY
           echo "|---------|------|" >> $GITHUB_STEP_SUMMARY

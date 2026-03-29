@@ -39,7 +39,7 @@ export default function InfoScreen() {
                     { paddingBottom: tokens.layout.screenPaddingBottom }
                 ]}
             >
-                <Section title="About Black Hand" icon="information-circle-outline">
+                <Section title="About Black Hands" icon="information-circle-outline">
                     <DSText size="base" color="textMuted" style={styles.paragraph}>
                         Black Hands is a community-driven platform dedicated to archiving and discussing the most significant (and often controversial) moments in political discourse.
                     </DSText>

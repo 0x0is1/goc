@@ -30,7 +30,7 @@ export default function ProfileScreen() {
         flex: 1,
         backgroundColor: tokens.colors.background,
     };
-    
+
     const navRight = (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <TouchableOpacity onPress={() => {
@@ -56,11 +56,22 @@ export default function ProfileScreen() {
         </View>
     );
 
+    const handleTestNotification = async () => {
+        await Notifications.scheduleNotificationAsync({
+            content: {
+                title: 'Test Notification',
+                body: 'This is a test notification to verify GOC background service!',
+                data: { url: '/(tabs)/' },
+            },
+            trigger: null,
+        });
+    };
+
     if (!user) {
         return (
-            <View style={[screenStyle, styles.centered]}>
+            <View style={screenStyle}>
                 <NavBar title='My Profile' rightElement={navRight} />
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', gap: 16 }}>
+                <View style={[styles.centered, { flex: 1 }]}>
                     <Ionicons name="search-outline" size={80} color={tokens.colors.textMuted} />
                     <DSText size="xl" weight="extraBold" color="textPrimary">Join the Conversation</DSText>
                     <DSText size="base" color="textMuted">Sign in to track your Gems and vote on controversies.</DSText>
@@ -82,17 +93,6 @@ export default function ProfileScreen() {
             </View>
         );
     }
-
-    const handleTestNotification = async () => {
-        await Notifications.scheduleNotificationAsync({
-            content: {
-                title: 'Test Notification',
-                body: 'This is a test notification to verify GOC background service!',
-                data: { url: '/(tabs)/' },
-            },
-            trigger: null,
-        });
-    };
 
 
     if (loading && posts.length === 0) {

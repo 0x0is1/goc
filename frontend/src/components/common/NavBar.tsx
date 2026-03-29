@@ -44,7 +44,7 @@ export function NavBar({ title, showBack, rightElement }: NavBarProps) {
                         </TouchableOpacity>
                     ) : (
                         <View style={styles.brandRow}>
-                            <Image source={require('../../../assets/splash-icon.png')} style={styles.icon} />
+                            <Image source={require('../../../assets/splash-icon.png')} style={styles.icon} contentFit='contain' />
                         </View>
                     )}
                 </View>

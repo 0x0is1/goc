@@ -17,7 +17,7 @@ import { Post } from '@appTypes/index';
 import { NavBar } from '@components/common/NavBar';
 
 export default function HomeFeed() {
-    const { tokens } = useTheme();
+    const { tokens, colorMode } = useTheme();
     const { tag, sort: sortParam } = useLocalSearchParams<{ tag?: string, sort?: string }>();
     const initialSort = (sortParam === 'top' ? 'top' : 'latest') as 'latest' | 'top';
 
@@ -73,25 +73,49 @@ export default function HomeFeed() {
             {isOffline && <OfflineBanner />}
 
             {/* Filter Bar */}
-            <View style={styles.filterBar}>
-                <View style={styles.sortContainer}>
+            <View style={[styles.filterBar, {
+                backgroundColor: tokens.colors.surface,
+                borderBottomColor: tokens.colors.border
+            }]}>
+                <View style={[styles.sortContainer, { backgroundColor: tokens.colors.surface2 }]}>
                     <TouchableOpacity
-                        style={[styles.sortButton, sort === 'latest' && styles.activeSort]}
+                        style={[
+                            styles.sortButton,
+                            sort === 'latest' && { backgroundColor: tokens.colors.textPrimary }
+                        ]}
                         onPress={() => router.setParams({ sort: 'latest' })}
                     >
-                        <DSText size="xs" weight="bold" color={sort === 'latest' ? 'accentForeground' : 'textMuted'}>LATEST</DSText>
+                        <DSText
+                            size="xs"
+                            weight="bold"
+                            color={sort === 'latest' ? (colorMode === 'dark' ? 'background' : 'surface') : 'textMuted'}
+                        >
+                            LATEST
+                        </DSText>
                     </TouchableOpacity>
                     <TouchableOpacity
-                        style={[styles.sortButton, sort === 'top' && styles.activeSort]}
+                        style={[
+                            styles.sortButton,
+                            sort === 'top' && { backgroundColor: tokens.colors.textPrimary }
+                        ]}
                         onPress={() => router.setParams({ sort: 'top' })}
                     >
-                        <DSText size="xs" weight="bold" color={sort === 'top' ? 'accentForeground' : 'textMuted'}>TOP</DSText>
+                        <DSText
+                            size="xs"
+                            weight="bold"
+                            color={sort === 'top' ? (colorMode === 'dark' ? 'background' : 'surface') : 'textMuted'}
+                        >
+                            TOP
+                        </DSText>
                     </TouchableOpacity>
                 </View>
 
                 {activeTag && (
                     <TouchableOpacity
-                        style={styles.activeTagBadge}
+                        style={[styles.activeTagBadge, {
+                            backgroundColor: tokens.colors.surface2,
+                            borderColor: tokens.colors.border
+                        }]}
                         onPress={() => router.setParams({ tag: undefined })}
                     >
                         <DSText size="xs" weight="bold" color="accent">#{activeTag.toUpperCase()}</DSText>
