@@ -21,7 +21,7 @@ export default function HomeFeed() {
     const { tag, sort: sortParam } = useLocalSearchParams<{ tag?: string, sort?: string }>();
     const initialSort = (sortParam === 'top' ? 'top' : 'latest') as 'latest' | 'top';
 
-    const { posts, loading, error, refresh, loadMore, sort, tag: activeTag } = useFeed(initialSort, tag || null);
+    const { posts, loading, error, refresh, loadMore, sort, tag: activeTag, hasMore } = useFeed(initialSort, tag || null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isOffline, setIsOffline] = useState(false);
 
@@ -130,6 +130,22 @@ export default function HomeFeed() {
                 keyExtractor={keyExtractor}
                 ItemSeparatorComponent={separator}
                 ListEmptyComponent={<EmptyState />}
+                ListFooterComponent={
+                    <View style={{ paddingVertical: 20 }}>
+                        {loading && posts.length > 0 ? (
+                            <View style={{ gap: 16 }}>
+                                <DSSkeletonCard />
+                                <DSSkeletonCard />
+                            </View>
+                        ) : !hasMore && posts.length > 0 ? (
+                            <View style={{ alignItems: 'center', padding: 20 }}>
+                                <DSText size="sm" color="textMuted" weight="medium">
+                                    📜 YOU'VE REACHED THE END OF THE ARCHIVE
+                                </DSText>
+                            </View>
+                        ) : null}
+                    </View>
+                }
                 refreshControl={
                     <RefreshControl
                         refreshing={isRefreshing}

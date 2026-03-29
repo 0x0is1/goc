@@ -37,12 +37,15 @@ app.use(
     })
 );
 
+import { optionalAuth } from '@middleware/auth';
+
 const speedLimiter = slowDown({
     windowMs: env.RATE_LIMIT_WINDOW_MS,
     delayAfter: env.SLOW_DOWN_DELAY_AFTER,
     delayMs: () => env.SLOW_DOWN_DELAY_MS,
 });
 
+app.use(optionalAuth);
 app.use(speedLimiter);
 app.use(globalLimiter);
 

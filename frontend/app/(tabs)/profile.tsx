@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, ScrollView, FlatList, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@contexts/ThemeContext';
 import { useAuthContext } from '@contexts/AuthContext';
@@ -23,8 +23,16 @@ import { useFeedback } from '@contexts/FeedbackContext';
 export default function ProfileScreen() {
     const { tokens, colorMode, toggleTheme } = useTheme();
     const { user, signOut } = useAuthContext();
-    const { posts, totalUpvotes, loading } = useProfile(user?.uid ?? '');
+    const { posts, totalUpvotes, loading, refresh } = useProfile(user?.uid ?? '');
     const { playClick, playTick } = useFeedback();
+
+    useFocusEffect(
+        useCallback(() => {
+            if (user) {
+                refresh();
+            }
+        }, [user, refresh])
+    );
 
     const screenStyle = {
         flex: 1,

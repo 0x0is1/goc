@@ -9,7 +9,7 @@ const router = Router();
 
 router.get('/', optionalAuth, listPosts);
 router.get('/:id', optionalAuth, getPost);
-router.post('/', postCreateLimiter, requireAuth, validate(createPostSchema), createPost);
+router.post('/', requireAuth, postCreateLimiter, validate(createPostSchema), createPost);
 router.delete('/:id', requireAuth, deletePost);
 
 export default router;

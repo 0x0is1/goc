@@ -13,17 +13,16 @@ import { TweetEmbed } from '@components/feed/TweetEmbed';
 import { VoteButtons } from '@components/feed/VoteButtons';
 import { YouTubeEmbed } from '@components/feed/YouTubeEmbed';
 import { DSBadge } from '@ds/Badge';
+import { WaybackButton } from '@components/feed/WaybackButton';
 import { ErrorState } from '@components/common/ErrorState';
 import { formatFullDate } from '@utils/formatters';
-
 import { NavBar } from '@components/common/NavBar';
 import { useFeedback } from '@contexts/FeedbackContext';
-
 import { useAuthContext } from '@contexts/AuthContext';
 
 export default function PostDetail() {
-    const { id } = useLocalSearchParams<{ id: string }>();
-    const { tokens } = useTheme();
+    const { id, showImage } = useLocalSearchParams<{ id: string, showImage?: string }>();
+    const { tokens, colorMode } = useTheme();
     const { user } = useAuthContext();
     const { post, loading, error } = usePost(id ?? '');
     const { playClick, playTick } = useFeedback();
@@ -44,18 +43,22 @@ export default function PostDetail() {
     const markdownStyles = {
         body: {
             color: tokens.colors.textPrimary,
-            fontSize: tokens.fontSize.base,
-            fontFamily: 'PlusJakartaSans_400Regular',
-            lineHeight: 22,
+            fontSize: 16,
+            lineHeight: 24,
+            fontFamily: 'Inter-Regular',
+        },
+        paragraph: {
+            marginBottom: 16,
         },
     };
 
-    if (loading) {
+    if (loading && !post) {
         return (
             <View style={screenStyle}>
-                <NavBar title="Gem post" showBack />
-                <DSSkeletonCard />
-                <DSSkeletonCard />
+                <NavBar title="Loading..." showBack />
+                <View style={{ padding: 16 }}>
+                    <DSSkeletonCard />
+                </View>
             </View>
         );
     }
@@ -79,12 +82,10 @@ export default function PostDetail() {
                 ]}
             >
                 <View style={{ gap: tokens.spacing.md }}>
-                    {/* TITLE FIRST */}
                     <DSText size="xl" weight="extraBold" color="textPrimary">
                         {post.title}
                     </DSText>
 
-                    {/* AUTHOR NEXT */}
                     <View style={styles.topMetaRow}>
                         <TouchableOpacity activeOpacity={0.7} onPress={() => {
                             playTick();
@@ -97,49 +98,43 @@ export default function PostDetail() {
                         </DSText>
                     </View>
 
-                    {/* VOTES AND TAGS (Vertical Stack) */}
-                    <View style={styles.interactionColumn}>
+                    <View style={styles.actionRow}>
                         <VoteButtons postId={post.id} upvotes={post.upvotes} downvotes={post.downvotes} iconSize={24} />
-                        <View style={styles.tagList}>
-                            {post.tags?.map(tag => (
-                                <DSBadge
-                                    key={tag}
-                                    label={tag}
-                                    variant="solid"
-                                    size="sm"
-                                    onPress={() => router.push({ pathname: '/', params: { tag } })}
-                                />
-                            ))}
-                        </View>
+                        <WaybackButton
+                            waybackUrl={post.waybackUrl}
+                            snapshotScreenshot={post.snapshotScreenshot}
+                        />
+                    </View>
+
+                    <View style={styles.tagList}>
+                        {post.tags?.map(tag => (
+                            <DSBadge
+                                key={tag}
+                                label={tag}
+                                variant="solid"
+                                size="sm"
+                                onPress={() => router.push({ pathname: '/', params: { tag } })}
+                            />
+                        ))}
                     </View>
 
                     <DSDivider />
-
-                    {/* TWEET EMBED (Above description) */}
                     <TweetEmbed tweetUrl={post.tweetUrl} html={post.tweetEmbedHtml} />
-
-                    {/* DESCRIPTION */}
                     <Markdown style={markdownStyles}>{post.description}</Markdown>
-
-                    {/* VIDEO FEED (Below description) */}
-                    {post.youtubeLink && (
-                        <YouTubeEmbed url={post.youtubeLink} />
-                    )}
-
+                    {post.youtubeLink && <YouTubeEmbed url={post.youtubeLink} />}
                     <DSDivider />
 
-                    {/* SOURCES AND SNAPSHOTS AT END */}
                     <View style={styles.evidenceSection}>
                         <DSText size="sm" weight="bold" color="textMuted" style={{ marginBottom: 16 }}>
                             SOURCES & VERIFICATION
                         </DSText>
 
-                        {/* Article List */}
                         {post.articleLinks && post.articleLinks.length > 0 && (
                             <View style={styles.urlList}>
                                 {post.articleLinks.map((link, idx) => (
                                     <TouchableOpacity
                                         key={idx}
+                                        activeOpacity={0.7}
                                         onPress={() => {
                                             playClick();
                                             router.push(link as any);
@@ -155,7 +150,6 @@ export default function PostDetail() {
                             </View>
                         )}
 
-                        {/* Snapshot */}
                         {post.snapshotScreenshot && (
                             <TouchableOpacity
                                 activeOpacity={0.9}
@@ -179,8 +173,7 @@ export default function PostDetail() {
                 </View>
             </ScrollView>
 
-            {/* EXPANDED IMAGE OVERLAY - OUTSIDE SCROLLVIEW */}
-            {router.canGoBack() && useLocalSearchParams().showImage === 'true' && (
+            {router.canGoBack() && showImage === 'true' && (
                 <View style={[StyleSheet.absoluteFill, { zIndex: 1000 }]}>
                     <TouchableOpacity
                         style={StyleSheet.absoluteFill}
@@ -218,15 +211,16 @@ const styles = StyleSheet.create({
         paddingVertical: 4,
         borderRadius: 12,
     },
-    interactionColumn: {
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        gap: 12,
+    actionRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 16,
     },
     tagList: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 8,
+        marginTop: 4,
     },
     evidenceSection: {
         marginTop: 12,

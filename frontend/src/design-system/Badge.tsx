@@ -47,7 +47,7 @@ export function DSBadge({ label, variant = 'solid', color, onPress, style, size 
         backgroundColor: variant === 'solid' ? bgColor : 'transparent',
         paddingHorizontal: size === 'sm' ? tokens.spacing.xs : tokens.spacing.sm,
         paddingVertical: size === 'sm' ? 1 : 2,
-        borderRadius: size === 'sm' ? tokens.radius.sm : tokens.radius.sm,
+        borderRadius: size === 'sm' ? tokens.radius.full : tokens.radius.full,
         alignSelf: 'flex-start',
     };
 
