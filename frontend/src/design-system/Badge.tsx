@@ -14,14 +14,14 @@ interface DSBadgeProps {
 }
 
 const PRESET_COLORS = [
-    '#E91E63', // Politics/Pink
-    '#2196F3', // Tech/Blue
-    '#4CAF50', // Economy/Green
-    '#9C27B0', // Social/Purple
-    '#FF9800', // Warning/Orange
-    '#00BCD4', // Info/Cyan
-    '#673AB7', // Law/Deep Purple
-    '#795548', // History/Brown
+    '#E91E63', 
+    '#2196F3', 
+    '#4CAF50', 
+    '#9C27B0', 
+    '#FF9800', 
+    '#00BCD4', 
+    '#673AB7', 
+    '#795548', 
 ];
 
 function getDeterministicColor(text: string): string {
@@ -36,7 +36,7 @@ function getDeterministicColor(text: string): string {
 export function DSBadge({ label, variant = 'solid', color, onPress, style, size = 'md' }: DSBadgeProps) {
     const { tokens } = useTheme();
 
-    // Use provided color, or map semantic names, or generate deterministic color
+    
     const bgColor = color
         ? (tokens.colors[color as keyof typeof tokens.colors] || color)
         : getDeterministicColor(label.toLowerCase());

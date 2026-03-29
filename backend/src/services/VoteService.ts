@@ -46,7 +46,7 @@ export class VoteService {
             const existingVote = voteDoc.data() as Vote;
 
             if (existingVote.type === type) {
-                // Remove vote (Toggle off)
+                
                 tx.delete(voteRef);
                 if (type === 'up') {
                     tx.update(postRef, { upvotes: Math.max(0, currentUpvotes - 1) });
@@ -58,10 +58,10 @@ export class VoteService {
                 return;
             }
 
-            // Switch vote type
+            
             tx.update(voteRef, { type });
             if (type === 'up') {
-                // Down -> Up
+                
                 tx.update(postRef, {
                     upvotes: currentUpvotes + 1,
                     downvotes: Math.max(0, currentDownvotes - 1),
@@ -69,7 +69,7 @@ export class VoteService {
                 tx.update(authorRef, { upvotesReceived: FieldValue.increment(1) });
                 tx.update(voterRef, { upvotesGiven: FieldValue.increment(1) });
             } else {
-                // Up -> Down
+                
                 tx.update(postRef, {
                     downvotes: currentDownvotes + 1,
                     upvotes: Math.max(0, currentUpvotes - 1),

@@ -45,7 +45,7 @@ export async function optionalAuth(req: AuthenticatedRequest, _res: Response, ne
         const decoded = await adminAuth.verifyIdToken(token);
         req.user = decoded;
     } catch {
-        // noop
+        
     }
     next();
 }

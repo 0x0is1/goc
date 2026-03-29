@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (firebaseUser) {
                 try {
                     console.log('[AuthContext] User is logged in, fetching FCM token & syncing profile...');
-                    // Automatically hit the backend to create/sync Postgres/Firestore records
+                    
                     const { syncUserProfile } = require('@services/api');
                     const { Platform } = require('react-native');
                     const Notifications = require('expo-notifications');

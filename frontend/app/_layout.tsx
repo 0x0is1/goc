@@ -60,7 +60,7 @@ function RootLayoutInner() {
     }, [fontsLoaded]);
 
     useEffect(() => {
-        // Trigger subtle haptic on screen change
+        
         if (fontsLoaded && pathname) {
             playTick();
         }

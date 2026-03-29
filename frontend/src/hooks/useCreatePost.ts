@@ -45,7 +45,7 @@ export function useCreatePost(): CreatePostHook {
         }
         setSubmitting(true);
         try {
-            // Process tags from string to array
+            
             const processedTags = fields.tags
                 ? fields.tags.split(',').map(t => t.trim()).filter(t => t.length > 0)
                 : [];

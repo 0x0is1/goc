@@ -15,7 +15,7 @@ import { AVATAR_SIZE_LG } from '@utils/constants';
 export default function UserProfileScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const { tokens } = useTheme();
-    const { posts, totalUpvotes, loading, error } = useProfile(id ?? '');
+    const { posts, profile, loading, error } = useProfile(id ?? '');
 
     const screenStyle = {
         flex: 1,
@@ -43,10 +43,10 @@ export default function UserProfileScreen() {
         );
     }
 
-    // Since we only have userId, we might need to fetch the author name from the first post 
-    // or update useProfile to return user metadata. For now, we'll use a generic title or the name from the first post.
-    const authorName = posts[0]?.authorName || 'User';
-    const authorAvatar = posts[0]?.authorAvatar;
+    
+    
+    const authorName = profile?.displayName || posts[0]?.authorName || 'User';
+    const authorAvatar = profile?.photoURL || posts[0]?.authorAvatar;
 
     return (
         <View style={screenStyle}>
@@ -68,8 +68,12 @@ export default function UserProfileScreen() {
                         <DSText size="sm" color="textMuted">Posts</DSText>
                     </View>
                     <View style={styles.statItem}>
-                        <DSText size="xl" weight="extraBold" color="textPrimary">{String(totalUpvotes)}</DSText>
-                        <DSText size="sm" color="textMuted">Upvotes</DSText>
+                        <DSText size="xl" weight="extraBold" color="textPrimary">{String(profile?.upvotesReceived ?? 0)}</DSText>
+                        <DSText size="sm" color="textMuted">Karma</DSText>
+                    </View>
+                    <View style={styles.statItem}>
+                        <DSText size="xl" weight="extraBold" color="textPrimary">{String(profile?.upvotesGiven ?? 0)}</DSText>
+                        <DSText size="sm" color="textMuted">Votes Cast</DSText>
                     </View>
                 </View>
 

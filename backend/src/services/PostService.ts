@@ -67,7 +67,7 @@ export class PostService {
             articleLinks: data.articleLinks || [],
             youtubeLink: data.youtubeLink || null,
             tags: data.tags || [],
-            showUserInfo: data.showUserInfo !== false, // Default to true
+            showUserInfo: data.showUserInfo !== false, 
             authorId: userId,
             authorName,
             authorAvatar,
@@ -81,7 +81,7 @@ export class PostService {
 
         await ref.set(postData);
 
-        // 🔥 BACKGROUND SNAPSHOT (non-blocking)
+        
         setImmediate(async () => {
             try {
                 const snapshot = await SnapshotService.createSnapshotWithRetry(data.tweetUrl);
@@ -158,7 +158,7 @@ export class PostService {
     static async serializePost(doc: FirebaseFirestore.DocumentSnapshot): Promise<Post> {
         const data = doc.data()!;
 
-        // Handle legacy articleLink (string) vs new articleLinks (array)
+        
         let articleLinks = data.articleLinks || [];
         if (data.articleLink && typeof data.articleLink === 'string' && articleLinks.length === 0) {
             articleLinks = [data.articleLink];

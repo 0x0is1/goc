@@ -47,7 +47,7 @@ export default function HomeFeed() {
         const unsubscribe = navigation.addListener('tabPress', (e: any) => {
             const isFocused = navigation.isFocused();
             if (isFocused && !tag) {
-                // If we're already on Home and not in a tag filter, scroll to top and refresh
+                
                 flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
                 handleRefresh();
             }
@@ -89,7 +89,7 @@ export default function HomeFeed() {
             <NavBar />
             {isOffline && <OfflineBanner />}
 
-            {/* Filter Bar */}
+            {}
             <View style={[styles.filterBar, {
                 backgroundColor: tokens.colors.surface,
                 borderBottomColor: tokens.colors.border

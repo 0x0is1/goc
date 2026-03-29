@@ -32,15 +32,15 @@ export const AnimatedSplashScreen: React.FC<Props> = ({ onAnimationComplete }) =
     useEffect(() => {
         const initialize = async () => {
             try {
-                // Start parallel tasks
+                
                 const updateTask = (async () => {
                     try {
                         if (!__DEV__) {
                             const { isAvailable } = await Updates.checkForUpdateAsync();
                             if (isAvailable) {
                                 await Updates.fetchUpdateAsync();
-                                // We don't reload immediately to avoid jarring experience, 
-                                // but the update is ready for next launch.
+                                
+                                
                             }
                         }
                     } catch (e) {
@@ -51,30 +51,30 @@ export const AnimatedSplashScreen: React.FC<Props> = ({ onAnimationComplete }) =
                 const prefetchTask = (async () => {
                     try {
                         const { getFeed } = require('@services/api');
-                        await getFeed(); // Prefetch latest feed
+                        await getFeed(); 
                     } catch (e) {
                         console.log('[Splash] Prefetch failed:', e);
                     }
                 })();
 
-                // Minimum animation time combined with tasks
+                
                 await Promise.all([updateTask, prefetchTask, new Promise(r => setTimeout(r, 2500))]);
             } catch (e) {
                 console.log('[Splash] Initialization error:', e);
             }
         };
 
-        // Animation Sequence
+        
         logoOpacity.value = withTiming(1, { duration: 800 });
         logoScale.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.exp) });
         contentOpacity.value = withDelay(400, withTiming(1, { duration: 800 }));
 
-        // Loader animates based on a fixed 2.5s duration for smoothness
+        
         loaderWidth.value = withDelay(600, withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.quad) }));
 
-        // Start tasks
+        
         initialize().then(() => {
-            // Exit after tasks AND smooth animation (total ~3s)
+            
             containerOpacity.value = withDelay(
                 500,
                 withTiming(0, { duration: 600 }, (finished) => {

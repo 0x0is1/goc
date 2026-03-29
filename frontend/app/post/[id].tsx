@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -26,11 +26,16 @@ export default function PostDetail() {
     const { user } = useAuthContext();
     const { post, loading, error } = usePost(id ?? '');
     const { playClick, playTick } = useFeedback();
+    const [tweetStatus, setTweetStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
 
     const handleUserPress = () => {
-        if (post?.authorId === user?.uid) {
+        if (!post) return;
+        if (post.authorName.toLowerCase() === 'anonymous') {
+            return; 
+        }
+        if (post.authorId === user?.uid) {
             router.push('/profile');
-        } else if (post) {
+        } else {
             router.push(`/user/${post.authorId}`);
         }
     };
@@ -74,7 +79,7 @@ export default function PostDetail() {
 
     return (
         <View style={screenStyle}>
-            <NavBar title="Gem post" showBack />
+            <NavBar title="Post" showBack />
             <ScrollView
                 contentContainerStyle={[
                     styles.content,
@@ -119,7 +124,11 @@ export default function PostDetail() {
                     </View>
 
                     <DSDivider />
-                    <TweetEmbed tweetUrl={post.tweetUrl} html={post.tweetEmbedHtml} />
+                    <TweetEmbed
+                        tweetUrl={post.tweetUrl}
+                        html={post.tweetEmbedHtml}
+                        onLoadStatus={setTweetStatus}
+                    />
                     <Markdown style={markdownStyles}>{post.description}</Markdown>
                     {post.youtubeLink && <YouTubeEmbed url={post.youtubeLink} />}
                     <DSDivider />
@@ -154,6 +163,21 @@ export default function PostDetail() {
                                         </TouchableOpacity>
                                     ))
                                 }
+                                {tweetStatus === 'error' && post.tweetUrl && (
+                                    <TouchableOpacity
+                                        activeOpacity={0.7}
+                                        onPress={() => {
+                                            playClick();
+                                            router.push(post.tweetUrl as any);
+                                        }}
+                                        style={styles.urlItem}
+                                    >
+                                        <Ionicons name="logo-twitter" size={16} color={tokens.colors.accent} />
+                                        <DSText size="sm" weight="medium" color="accent" numberOfLines={1} style={{ flex: 1 }}>
+                                            Original Tweet (Deleted Content Reference)
+                                        </DSText>
+                                    </TouchableOpacity>
+                                )}
                             </View>
                         )}
 
@@ -210,7 +234,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginTop: -4,
+        marginTop: 4,
     },
     authorBadge: {
         backgroundColor: 'rgba(0,0,0,0.03)',
@@ -227,7 +251,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 8,
-        marginTop: 4,
+        marginTop: 12,
+        marginBottom: 8,
     },
     evidenceSection: {
         marginTop: 12,

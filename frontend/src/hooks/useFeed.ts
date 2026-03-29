@@ -52,12 +52,12 @@ export function useFeed(initialSort: 'latest' | 'top' = 'latest', initialTag: st
         }
     }, [sort, tag]);
 
-    // Initial load and filter changes
+    
     useEffect(() => {
         fetchFeed(true);
     }, [sort, tag, fetchFeed]);
 
-    // Sync from URL params
+    
     useEffect(() => {
         if (initialSort !== sort) setSort(initialSort);
     }, [initialSort]);

@@ -28,6 +28,9 @@ export function FeedCard({ post }: FeedCardProps) {
 
   const handleUserPress = () => {
     playTick();
+    if (post.authorName.toLowerCase() === 'anonymous') {
+      return; 
+    }
     if (post.authorId === user?.uid) {
       router.push('/profile');
     } else {
@@ -68,7 +71,7 @@ export function FeedCard({ post }: FeedCardProps) {
             </DSText>
           </View>
 
-          {/* Tags */}
+          {}
           {post.tags && post.tags.length > 0 && (
             <View style={styles.tagContainer}>
               {post.tags.slice(0, 3).map(tag => (
@@ -115,7 +118,7 @@ export function FeedCard({ post }: FeedCardProps) {
               snapshotScreenshot={post.snapshotScreenshot}
             />
 
-            {/* Source Logos Moved Here */}
+            {}
             <View style={styles.sourceIconsContainer}>
               {post.youtubeLink && (
                 <View style={styles.iconWrapper}>
@@ -182,8 +185,9 @@ const styles = StyleSheet.create({
   tagContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-    marginBottom: 10,
+    gap: 8,
+    marginBottom: 8,
+    marginTop: 4,
   },
   leftActions: {
     flexDirection: 'row',

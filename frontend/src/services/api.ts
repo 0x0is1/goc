@@ -14,7 +14,7 @@ async function fetchApi<T>(endpoint: string, options: RequestInit = {}): Promise
         headers['Authorization'] = `Bearer ${token}`;
     }
 
-    // Add timeout to prevent indefinite hanging in emulator networks
+    
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 3 * 60 * 1000);
 
@@ -107,12 +107,12 @@ export async function votePost(postId: string, type: 'up' | 'down'): Promise<Vot
     return res.data!;
 }
 
-// In the backend VoteService, voting the exact SAME type again toggles/unvotes it. 
-// However, if the useVote hook just wants to remove unconditionally, it can just submit the inverse?
-// Let's implement an explicit removeVote fallback or rely on the hook's toggle tracking logic.
+
+
+
 export async function removeVote(postId: string): Promise<VoteResult> {
-    // If there is no dedicated DELETE endpoint, we can fallback to the hook doing proper toggle
-    // But let's assume fetching here
+    
+    
     const res = await fetchApi<ApiResponse<VoteResult>>(`/votes/${postId}?remove=true`, { method: 'DELETE' }).catch(() => null);
     if (!res) throw new Error("Vote removal not implemented cleanly on backend yet");
     return res.data!;

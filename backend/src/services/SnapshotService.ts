@@ -23,9 +23,7 @@ interface SnapshotResult {
 export class SnapshotService {
   private static browser: Browser | null = null;
 
-  /**
-   * Initialize the browser instance (reusable across requests)
-   */
+  
   private static async getBrowser(): Promise<Browser> {
     if (!this.browser || !this.browser.isConnected()) {
       this.browser = await puppeteer.launch({
@@ -42,9 +40,7 @@ export class SnapshotService {
     return this.browser;
   }
 
-  /**
-   * Close the browser instance
-   */
+  
   static async closeBrowser(): Promise<void> {
     if (this.browser) {
       await this.browser.close();
@@ -52,10 +48,7 @@ export class SnapshotService {
     }
   }
 
-  /**
-   * Create a snapshot of a tweet using Puppeteer
-   * Returns base64 encoded screenshot and HTML content
-   */
+  
   static async createSnapshot(url: string): Promise<SnapshotResult | null> {
     const normalized = normalizeTweetUrl(url);
 
@@ -70,41 +63,41 @@ export class SnapshotService {
       const browser = await this.getBrowser();
       page = await browser.newPage();
 
-      // Set viewport - using 1x scale instead of 2x to reduce size
-      // 900px width is good for tweets while keeping file size manageable
+      
+      
       await page.setViewport({
         width: 900,
         height: 1600,
         deviceScaleFactor: 1,
       });
 
-      // Set a realistic user agent
+      
       await page.setUserAgent(
         'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
       );
 
       logger.info('Loading tweet page', { url: normalized });
 
-      // Navigate to the tweet
+      
       await page.goto(normalized, {
         waitUntil: 'networkidle2',
         timeout: NAVIGATION_TIMEOUT,
       });
 
-      // Wait for content to load and the main article to appear
+      
       try {
         await page.waitForSelector('article', { timeout: 5000 });
       } catch (e) {
         logger.warn('article selector not found, falling back to full viewport', { url: normalized });
       }
 
-      // Add a small buffer for heavy media
+      
       await sleep(1500);
 
-      // Get the HTML content
+      
       const htmlContent = await page.content();
 
-      // Find the tweet element and take a clipped screenshot
+      
       let screenshotBuffer: string;
       const element = await page.$('article');
 
@@ -172,9 +165,7 @@ export class SnapshotService {
     }
   }
 
-  /**
-   * Create a snapshot with retry logic
-   */
+  
   static async createSnapshotWithRetry(
     url: string,
     maxRetries = 3
@@ -191,7 +182,7 @@ export class SnapshotService {
       }
 
       if (attempt < maxRetries) {
-        await sleep(2000 * attempt); // Exponential backoff
+        await sleep(2000 * attempt); 
       }
     }
 

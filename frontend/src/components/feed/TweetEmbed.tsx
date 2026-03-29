@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import WebView from 'react-native-webview';
 import { useTheme } from '@contexts/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,11 +9,14 @@ interface TweetEmbedProps {
   tweetUrl?: string;
   html?: string;
   interactive?: boolean;
+  onLoadStatus?: (status: 'loading' | 'loaded' | 'error') => void;
 }
 
-export function TweetEmbed({ tweetUrl, html: rawHtml, interactive = true }: TweetEmbedProps) {
+export function TweetEmbed({ tweetUrl, html: rawHtml, interactive = true, onLoadStatus }: TweetEmbedProps) {
   const { tokens, colorMode } = useTheme();
-  const [height, setHeight] = useState(120);
+  const [height, setHeight] = useState(250); 
+  const [isError, setIsError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const getTweetId = (url?: string) => {
     if (!url) return null;
@@ -24,17 +27,30 @@ export function TweetEmbed({ tweetUrl, html: rawHtml, interactive = true }: Twee
   const tweetId = getTweetId(tweetUrl);
   if (!tweetId) return null;
 
-  const [isError, setIsError] = useState(false);
-
-  // Fallback timeout: if height doesn't increase significantly after load
+  
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (height <= 150) {
+      
+      if (height <= 100) {
         setIsError(true);
+        setIsLoading(false);
+        onLoadStatus?.('error');
       }
-    }, 5000);
+    }, 15000);
     return () => clearTimeout(timer);
   }, [height]);
+
+  const onWebViewMessage = (event: any) => {
+    const h = parseInt(event.nativeEvent.data);
+    if (!isNaN(h) && h > 10) {
+      setHeight(h);
+      if (h > 100) {
+        setIsLoading(false);
+        setIsError(false);
+        onLoadStatus?.('loaded');
+      }
+    }
+  };
 
   const theme = colorMode === 'light' ? 'light' : 'dark';
   const bg = tokens?.colors?.surface2 || '#000';
@@ -56,13 +72,13 @@ export function TweetEmbed({ tweetUrl, html: rawHtml, interactive = true }: Twee
         </DSText>
         <DSText size="xs" color="textMuted" style={{ textAlign: 'center', lineHeight: 18 }}>
           This content may have been deleted or the account is private.
-          {"\n"}Check the original Gem snapshot for context.
+          {"\n"}Check the original Post snapshot for context.
         </DSText>
       </View>
     );
   }
 
-  const html = `
+  const htmlContent = `
   <!DOCTYPE html>
   <html>
     <head>
@@ -96,7 +112,7 @@ export function TweetEmbed({ tweetUrl, html: rawHtml, interactive = true }: Twee
         <a href="https://twitter.com/i/status/${tweetId}"></a>
       </blockquote>
 
-      <script async src="https://platform.twitter.com/widgets.js"></script>
+      <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
       <script>
         function sendHeight() {
@@ -130,51 +146,49 @@ export function TweetEmbed({ tweetUrl, html: rawHtml, interactive = true }: Twee
   `;
 
   return (
-    <View
-      style={{
+    <View style={{ position: 'relative' }}>
+      {isLoading && (
+        <View style={{
+          height: 150,
+          backgroundColor: bg,
+          borderRadius: 12,
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 8,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1
+        }}>
+          <Ionicons
+            name="logo-twitter"
+            size={24}
+            color={tokens.colors.textMuted}
+          />
+          <DSText size="xs" color="textMuted">Loading content...</DSText>
+        </View>
+      )}
+      <View style={{
         height,
         backgroundColor: bg,
         borderRadius: 12,
         overflow: 'hidden',
+        opacity: isLoading ? 0 : 1
       }}
-      pointerEvents={interactive ? 'auto' : 'none'}
-    >
-      <WebView
-        originWhitelist={['*']}
-        source={{ html }}
-        javaScriptEnabled
-        domStorageEnabled
-        mixedContentMode="always"
-        scrollEnabled={false}
-        style={{ flex: 1, backgroundColor: 'transparent' }}
-
-        startInLoadingState={true}
-        renderLoading={() => (
-          <View
-            style={{
-              height: 120,
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: 8,
-              backgroundColor: bg,
-            }}
-          >
-            <Ionicons
-              name="logo-twitter"
-              size={24}
-              color={tokens.colors.textMuted}
-            />
-            <DSText size="sm" color="textMuted">
-              Loading tweet...
-            </DSText>
-          </View>
-        )}
-
-        onMessage={(event) => {
-          const h = Number(event.nativeEvent.data);
-          if (h && Math.abs(h - height) > 2) setHeight(h);
-        }}
-      />
+        pointerEvents={interactive ? 'auto' : 'none'}
+      >
+        <WebView
+          originWhitelist={['*']}
+          source={{ html: htmlContent }}
+          javaScriptEnabled
+          domStorageEnabled
+          mixedContentMode="always"
+          scrollEnabled={false}
+          style={{ flex: 1, backgroundColor: 'transparent' }}
+          onMessage={onWebViewMessage}
+        />
+      </View>
     </View>
   );
 }
