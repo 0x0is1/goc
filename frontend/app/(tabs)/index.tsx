@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, FlatList, RefreshControl, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, router } from 'expo-router';
+import { useScrollToTop } from '@react-navigation/native';
 import NetInfo from '@react-native-community/netinfo';
 import { useTheme } from '@contexts/ThemeContext';
 import { DSText } from '@ds/Text';
@@ -24,6 +25,8 @@ export default function HomeFeed() {
     const { posts, loading, error, refresh, loadMore, sort, tag: activeTag, hasMore } = useFeed(initialSort, tag || null);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isOffline, setIsOffline] = useState(false);
+    const flatListRef = React.useRef<FlatList>(null);
+    useScrollToTop(flatListRef);
 
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener((state) => {
@@ -37,6 +40,20 @@ export default function HomeFeed() {
         await refresh();
         setIsRefreshing(false);
     }, [refresh]);
+
+    const navigation = require('@react-navigation/native').useNavigation();
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('tabPress', (e: any) => {
+            const isFocused = navigation.isFocused();
+            if (isFocused && !tag) {
+                // If we're already on Home and not in a tag filter, scroll to top and refresh
+                flatListRef.current?.scrollToOffset({ offset: 0, animated: true });
+                handleRefresh();
+            }
+        });
+        return unsubscribe;
+    }, [navigation, handleRefresh, tag]);
 
     const screenStyle = {
         flex: 1,
@@ -125,6 +142,7 @@ export default function HomeFeed() {
             </View>
 
             <FlatList
+                ref={flatListRef}
                 data={posts}
                 renderItem={renderItem}
                 keyExtractor={keyExtractor}

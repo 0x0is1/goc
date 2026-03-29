@@ -84,7 +84,7 @@ export default function LoginScreen() {
             >
                 <View style={styles.header}>
                     <DSText size="2xl" weight="extraBold" color="textPrimary">Welcome Back</DSText>
-                    <DSText size="base" color="textMuted">Sign in to share your Gems</DSText>
+                    <DSText size="base" color="textMuted">Sign in to share your post</DSText>
                 </View>
 
                 <View style={styles.form}>

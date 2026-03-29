@@ -131,22 +131,29 @@ export default function PostDetail() {
 
                         {post.articleLinks && post.articleLinks.length > 0 && (
                             <View style={styles.urlList}>
-                                {post.articleLinks.map((link, idx) => (
-                                    <TouchableOpacity
-                                        key={idx}
-                                        activeOpacity={0.7}
-                                        onPress={() => {
-                                            playClick();
-                                            router.push(link as any);
-                                        }}
-                                        style={styles.urlItem}
-                                    >
-                                        <Ionicons name="newspaper-outline" size={16} color={tokens.colors.accent} />
-                                        <DSText size="sm" weight="medium" color="accent" numberOfLines={1} style={{ flex: 1 }}>
-                                            {link}
-                                        </DSText>
-                                    </TouchableOpacity>
-                                ))}
+                                {post.articleLinks
+                                    .filter(link =>
+                                        !link.includes('twitter.com') &&
+                                        !link.includes('x.com') &&
+                                        !link.includes('gemsofcongress.com')
+                                    )
+                                    .map((link, idx) => (
+                                        <TouchableOpacity
+                                            key={idx}
+                                            activeOpacity={0.7}
+                                            onPress={() => {
+                                                playClick();
+                                                router.push(link as any);
+                                            }}
+                                            style={styles.urlItem}
+                                        >
+                                            <Ionicons name="newspaper-outline" size={16} color={tokens.colors.accent} />
+                                            <DSText size="sm" weight="medium" color="accent" numberOfLines={1} style={{ flex: 1 }}>
+                                                {link}
+                                            </DSText>
+                                        </TouchableOpacity>
+                                    ))
+                                }
                             </View>
                         )}
 
@@ -214,7 +221,7 @@ const styles = StyleSheet.create({
     actionRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 16,
+        gap: 24,
     },
     tagList: {
         flexDirection: 'row',

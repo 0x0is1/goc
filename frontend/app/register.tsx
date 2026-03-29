@@ -73,7 +73,7 @@ export default function RegisterScreen() {
             >
                 <View style={styles.header}>
                     <DSText size="2xl" weight="extraBold" color="textPrimary">Create Account</DSText>
-                    <DSText size="base" color="textMuted">Join and start curating Gems</DSText>
+                    <DSText size="base" color="textMuted">Join and start curating posts</DSText>
                 </View>
 
                 <View style={styles.form}>

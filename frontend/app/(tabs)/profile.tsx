@@ -82,7 +82,7 @@ export default function ProfileScreen() {
                 <View style={[styles.centered, { flex: 1 }]}>
                     <Ionicons name="search-outline" size={80} color={tokens.colors.textMuted} />
                     <DSText size="xl" weight="extraBold" color="textPrimary">Join the Conversation</DSText>
-                    <DSText size="base" color="textMuted">Sign in to track your Gems and vote on controversies.</DSText>
+                    <DSText size="base" color="textMuted">Sign in to track your posts and vote on controversies.</DSText>
                     <DSButton
                         label="Sign In"
                         onPress={() => router.push('/login')}
@@ -133,7 +133,7 @@ export default function ProfileScreen() {
                 <View style={styles.statsRow}>
                     <View style={styles.statItem}>
                         <DSText size="xl" weight="extraBold" color="textPrimary">{String(posts.length)}</DSText>
-                        <DSText size="sm" color="textMuted">Gems</DSText>
+                        <DSText size="sm" color="textMuted">Posts</DSText>
                     </View>
                     <View style={styles.statItem}>
                         <DSText size="xl" weight="extraBold" color="textPrimary">{String(profile?.upvotesReceived ?? 0)}</DSText>
@@ -156,7 +156,7 @@ export default function ProfileScreen() {
                 </View>
                 <DSDivider style={{ marginVertical: tokens.spacing.md, marginHorizontal: tokens.spacing.md }} />
                 <DSText size="md" weight="bold" color="textPrimary" style={{ marginBottom: tokens.spacing.md, marginHorizontal: tokens.spacing.md }}>
-                    My Gems
+                    My Posts
                 </DSText>
                 <View style={{ gap: 0 }}>
                     {posts.map((post) => <FeedCard key={post.id} post={post} />)}

@@ -32,7 +32,7 @@ export function TweetEmbed({ tweetUrl, html: rawHtml, interactive = true }: Twee
       if (height <= 150) {
         setIsError(true);
       }
-    }, 8000);
+    }, 5000);
     return () => clearTimeout(timer);
   }, [height]);
 
@@ -42,20 +42,21 @@ export function TweetEmbed({ tweetUrl, html: rawHtml, interactive = true }: Twee
   if (isError) {
     return (
       <View style={{
-        padding: 20,
+        padding: 24,
         backgroundColor: bg,
         borderRadius: 12,
         alignItems: 'center',
         gap: 12,
         borderWidth: 1,
-        borderColor: tokens.colors.border
+        borderColor: tokens.colors.accent + '20'
       }}>
-        <Ionicons name="alert-circle-outline" size={32} color={tokens.colors.textMuted} />
+        <Ionicons name="cloud-offline-outline" size={32} color={tokens.colors.accent} />
         <DSText size="sm" color="textPrimary" weight="bold" style={{ textAlign: 'center' }}>
-          This tweet may have been removed or deleted.
+          Tweet currently unavailable
         </DSText>
-        <DSText size="xs" color="textMuted" style={{ textAlign: 'center' }}>
-          You can still view the original context by clicking on the post.
+        <DSText size="xs" color="textMuted" style={{ textAlign: 'center', lineHeight: 18 }}>
+          This content may have been deleted or the account is private.
+          {"\n"}Check the original Gem snapshot for context.
         </DSText>
       </View>
     );

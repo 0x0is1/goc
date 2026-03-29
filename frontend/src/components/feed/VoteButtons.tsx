@@ -111,8 +111,8 @@ const styles = StyleSheet.create({
     pill: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 6,
-        paddingHorizontal: 12,
+        gap: 3,
+        paddingHorizontal: 10,
         paddingVertical: 6,
         borderRadius: 20,
     },

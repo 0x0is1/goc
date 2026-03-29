@@ -65,7 +65,7 @@ export default function UserProfileScreen() {
                 <View style={styles.statsRow}>
                     <View style={styles.statItem}>
                         <DSText size="xl" weight="extraBold" color="textPrimary">{String(posts.length)}</DSText>
-                        <DSText size="sm" color="textMuted">Gems</DSText>
+                        <DSText size="sm" color="textMuted">Posts</DSText>
                     </View>
                     <View style={styles.statItem}>
                         <DSText size="xl" weight="extraBold" color="textPrimary">{String(totalUpvotes)}</DSText>
@@ -76,7 +76,7 @@ export default function UserProfileScreen() {
                 <DSDivider style={{ marginVertical: tokens.spacing.md, marginHorizontal: tokens.spacing.md }} />
 
                 <DSText size="md" weight="semiBold" color="textPrimary" style={{ marginBottom: tokens.spacing.md, marginHorizontal: tokens.spacing.md }}>
-                    Gems from @{authorName}
+                    Posts from @{authorName}
                 </DSText>
 
                 <View style={{ gap: 0 }}>
@@ -84,7 +84,7 @@ export default function UserProfileScreen() {
                         posts.map((post) => <FeedCard key={post.id} post={post} />)
                     ) : (
                         <DSText size="base" color="textMuted" style={{ textAlign: 'center', marginTop: 32 }}>
-                            No gems found for this user.
+                            No posts found for this user.
                         </DSText>
                     )}
                 </View>
