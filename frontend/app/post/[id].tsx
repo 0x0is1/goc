@@ -31,7 +31,7 @@ export default function PostDetail() {
     const handleUserPress = () => {
         if (!post) return;
         if (post.authorName.toLowerCase() === 'anonymous') {
-            return; 
+            return;
         }
         if (post.authorId === user?.uid) {
             router.push('/profile');
@@ -115,7 +115,7 @@ export default function PostDetail() {
                         {post.tags?.map(tag => (
                             <DSBadge
                                 key={tag}
-                                label={tag}
+                                label={tag.replace(/^#/, '')}
                                 variant="solid"
                                 size="sm"
                                 onPress={() => router.push({ pathname: '/', params: { tag } })}

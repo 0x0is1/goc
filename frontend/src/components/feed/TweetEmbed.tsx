@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import WebView from 'react-native-webview';
 import { useTheme } from '@contexts/ThemeContext';
@@ -14,9 +14,10 @@ interface TweetEmbedProps {
 
 export function TweetEmbed({ tweetUrl, html: rawHtml, interactive = true, onLoadStatus }: TweetEmbedProps) {
   const { tokens, colorMode } = useTheme();
-  const [height, setHeight] = useState(250); 
+  const [height, setHeight] = useState(150);
   const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const hasReceivedUpdate = useRef(false);
 
   const getTweetId = (url?: string) => {
     if (!url) return null;
@@ -27,24 +28,29 @@ export function TweetEmbed({ tweetUrl, html: rawHtml, interactive = true, onLoad
   const tweetId = getTweetId(tweetUrl);
   if (!tweetId) return null;
 
-  
   useEffect(() => {
+    setHeight(150);
+    setIsLoading(true);
+    setIsError(false);
+    hasReceivedUpdate.current = false;
+
     const timer = setTimeout(() => {
-      
-      if (height <= 100) {
+      if (!hasReceivedUpdate.current) {
         setIsError(true);
         setIsLoading(false);
         onLoadStatus?.('error');
       }
     }, 15000);
+
     return () => clearTimeout(timer);
-  }, [height]);
+  }, [tweetId]);
 
   const onWebViewMessage = (event: any) => {
     const h = parseInt(event.nativeEvent.data);
-    if (!isNaN(h) && h > 10) {
+    if (!isNaN(h) && h > 20) {
       setHeight(h);
       if (h > 100) {
+        hasReceivedUpdate.current = true;
         setIsLoading(false);
         setIsError(false);
         onLoadStatus?.('loaded');

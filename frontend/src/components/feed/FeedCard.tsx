@@ -29,7 +29,7 @@ export function FeedCard({ post }: FeedCardProps) {
   const handleUserPress = () => {
     playTick();
     if (post.authorName.toLowerCase() === 'anonymous') {
-      return; 
+      return;
     }
     if (post.authorId === user?.uid) {
       router.push('/profile');
@@ -71,13 +71,13 @@ export function FeedCard({ post }: FeedCardProps) {
             </DSText>
           </View>
 
-          {}
+          { }
           {post.tags && post.tags.length > 0 && (
             <View style={styles.tagContainer}>
               {post.tags.slice(0, 3).map(tag => (
                 <DSBadge
                   key={tag}
-                  label={tag}
+                  label={tag.replace(/^#/, '')}
                   variant="solid"
                   size="sm"
                   onPress={() => router.push({ pathname: '/', params: { tag } })}
@@ -118,7 +118,7 @@ export function FeedCard({ post }: FeedCardProps) {
               snapshotScreenshot={post.snapshotScreenshot}
             />
 
-            {}
+            { }
             <View style={styles.sourceIconsContainer}>
               {post.youtubeLink && (
                 <View style={styles.iconWrapper}>

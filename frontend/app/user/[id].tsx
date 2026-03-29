@@ -43,8 +43,8 @@ export default function UserProfileScreen() {
         );
     }
 
-    
-    
+
+
     const authorName = profile?.displayName || posts[0]?.authorName || 'User';
     const authorAvatar = profile?.photoURL || posts[0]?.authorAvatar;
 
@@ -87,9 +87,9 @@ export default function UserProfileScreen() {
                     {posts.length > 0 ? (
                         posts.map((post) => <FeedCard key={post.id} post={post} />)
                     ) : (
-                        <DSText size="base" color="textMuted" style={{ textAlign: 'center', marginTop: 32 }}>
-                            No posts found for this user.
-                        </DSText>
+                        <View style={{ padding: 32, alignItems: 'center' }}>
+                            <DSText size="base" color="textMuted">@{authorName} has not posted anything yet.</DSText>
+                        </View>
                     )}
                 </View>
             </ScrollView>

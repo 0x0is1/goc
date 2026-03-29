@@ -159,7 +159,13 @@ export default function ProfileScreen() {
                     My Posts
                 </DSText>
                 <View style={{ gap: 0 }}>
-                    {posts.map((post) => <FeedCard key={post.id} post={post} />)}
+                    {posts.length > 0 ? (
+                        posts.map((post) => <FeedCard key={post.id} post={post} />)
+                    ) : (
+                        <View style={{ padding: 32, alignItems: 'center' }}>
+                            <DSText size="base" color="textMuted">You have not posted anything yet.</DSText>
+                        </View>
+                    )}
                 </View>
                 <View style={{ height: tokens.spacing.xl }} />
             </ScrollView>
