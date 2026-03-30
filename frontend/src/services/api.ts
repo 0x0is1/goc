@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { auth } from '@services/firebase';
-import { Post, Vote, UserProfile, PaginatedResponse, ApiResponse } from '@appTypes/index';
+import { Post, Vote, UserProfile, PaginatedResponse, ApiResponse, CancelledPerson, CreateCancelledFields } from '@appTypes/index';
 
 const API_BASE = process.env.EXPO_PUBLIC_API_URL || (Platform.OS === 'android' ? 'http://10.0.2.2:3000/api' : 'http://localhost:3000/api');
 
@@ -131,6 +131,20 @@ export async function createPost(data: CreatePostInput): Promise<Post> {
     return res.data!;
 }
 
+export async function updatePost(id: string, data: CreatePostInput): Promise<Post> {
+    const res = await fetchApi<ApiResponse<Post>>(`/posts/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+    });
+    return res.data!;
+}
+
+export async function deletePost(id: string): Promise<void> {
+    await fetchApi<ApiResponse<null>>(`/posts/${id}`, {
+        method: 'DELETE'
+    });
+}
+
 interface VoteResult {
     upvotes: number;
     downvotes: number;
@@ -160,13 +174,13 @@ export async function getUserVote(postId: string): Promise<Vote | null> {
     }
 }
 
-export async function getUser(userId: string): Promise<UserProfile> {
-    const res = await fetchApi<ApiResponse<UserProfile>>(`/users/${userId}`);
+export async function getUser(userId: string, bypassCache?: boolean): Promise<UserProfile> {
+    const res = await fetchApi<ApiResponse<UserProfile>>(`/users/${userId}`, { bypassCache });
     return res.data!;
 }
 
-export async function getUserPosts(userId: string): Promise<Post[]> {
-    const res = await fetchApi<PaginatedResponse<Post>>(`/users/${userId}/posts`);
+export async function getUserPosts(userId: string, bypassCache?: boolean): Promise<Post[]> {
+    const res = await fetchApi<PaginatedResponse<Post>>(`/users/${userId}/posts`, { bypassCache });
     return res.data || [];
 }
 
@@ -184,4 +198,75 @@ export async function getWaybackSnapshot(url: string): Promise<{ waybackUrl: str
         body: JSON.stringify({ url }),
     });
     return res.data!;
+}
+
+export interface CancelledFeedResult {
+    persons: CancelledPerson[];
+    cursor: string | null;
+    hasMore: boolean;
+}
+
+export async function getCancelledPersons(
+    cursor?: string,
+    sort: 'latest' | 'top' = 'latest',
+    query?: string,
+    bypassCache?: boolean
+): Promise<CancelledFeedResult> {
+    let url = `/cancelled?limit=10&sort=${sort}`;
+    if (cursor) url += `&cursor=${cursor}`;
+    if (query) url += `&q=${encodeURIComponent(query)}`;
+
+    const res = await fetchApi<PaginatedResponse<CancelledPerson>>(url, { bypassCache });
+    return {
+        persons: res.data || [],
+        cursor: res.meta?.cursor || null,
+        hasMore: res.meta?.hasMore || false,
+    };
+}
+
+export async function getCancelledPerson(id: string, bypassCache?: boolean): Promise<CancelledPerson> {
+    const res = await fetchApi<ApiResponse<CancelledPerson>>(`/cancelled/${id}`, { bypassCache });
+    return res.data!;
+}
+
+export async function createCancelledPerson(data: CreateCancelledFields): Promise<CancelledPerson> {
+    const res = await fetchApi<ApiResponse<CancelledPerson>>('/cancelled', {
+        method: 'POST',
+        body: JSON.stringify(data)
+    });
+    return res.data!;
+}
+
+export async function updateCancelledPerson(id: string, data: CreateCancelledFields): Promise<CancelledPerson> {
+    const res = await fetchApi<ApiResponse<CancelledPerson>>(`/cancelled/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+    });
+    return res.data!;
+}
+
+export async function deleteCancelledPerson(id: string): Promise<void> {
+    await fetchApi<ApiResponse<null>>(`/cancelled/${id}`, { method: 'DELETE' });
+}
+
+export async function voteCancelledPerson(id: string, type: 'up' | 'down'): Promise<VoteResult> {
+    const res = await fetchApi<ApiResponse<VoteResult>>(`/cancelled/${id}/vote`, {
+        method: 'POST',
+        body: JSON.stringify({ type })
+    });
+    return res.data!;
+}
+
+export async function getUserSnakeVote(personId: string): Promise<Vote | null> {
+    try {
+        const res = await fetchApi<ApiResponse<Vote>>(`/cancelled/${personId}/vote`);
+        return res.data || null;
+    } catch {
+        return null;
+    }
+}
+
+export async function getUserCancelledEnlistments(userId: string, bypassCache?: boolean): Promise<CancelledPerson[]> {
+    const res = await fetchApi<PaginatedResponse<CancelledPerson>>(`/cancelled/user/${userId}`, { bypassCache });
+    return res.data || [];
 }

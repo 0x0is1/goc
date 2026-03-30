@@ -11,17 +11,18 @@ interface DSBadgeProps {
     onPress?: () => void;
     size?: 'sm' | 'md';
     style?: ViewStyle;
+    textStyle?: any;
 }
 
 const PRESET_COLORS = [
-    '#E91E63', 
-    '#2196F3', 
-    '#4CAF50', 
-    '#9C27B0', 
-    '#FF9800', 
-    '#00BCD4', 
-    '#673AB7', 
-    '#795548', 
+    '#E91E63',
+    '#2196F3',
+    '#4CAF50',
+    '#9C27B0',
+    '#FF9800',
+    '#00BCD4',
+    '#673AB7',
+    '#795548',
 ];
 
 function getDeterministicColor(text: string): string {
@@ -33,10 +34,10 @@ function getDeterministicColor(text: string): string {
     return PRESET_COLORS[index];
 }
 
-export function DSBadge({ label, variant = 'solid', color, onPress, style, size = 'md' }: DSBadgeProps) {
+export function DSBadge({ label, variant = 'solid', color, onPress, style, size = 'md', textStyle }: DSBadgeProps) {
     const { tokens } = useTheme();
 
-    
+
     const bgColor = color
         ? (tokens.colors[color as keyof typeof tokens.colors] || color)
         : getDeterministicColor(label.toLowerCase());
@@ -45,9 +46,9 @@ export function DSBadge({ label, variant = 'solid', color, onPress, style, size 
         borderWidth: 1,
         borderColor: variant === 'outline' ? bgColor : 'transparent',
         backgroundColor: variant === 'solid' ? bgColor : 'transparent',
-        paddingHorizontal: size === 'sm' ? tokens.spacing.xs : tokens.spacing.sm,
-        paddingVertical: size === 'sm' ? 1 : 2,
-        borderRadius: size === 'sm' ? tokens.radius.full : tokens.radius.full,
+        paddingHorizontal: size === 'md' ? tokens.spacing.sm : tokens.spacing.md,
+        paddingVertical: size === 'md' ? 1 : 2,
+        borderRadius: size === 'md' ? tokens.radius.full : tokens.radius.full,
         alignSelf: 'flex-start',
     };
 
@@ -56,7 +57,7 @@ export function DSBadge({ label, variant = 'solid', color, onPress, style, size 
             <DSText
                 size="xs"
                 weight="bold"
-                style={{ color: variant === 'solid' ? '#ffffff' : bgColor }}
+                style={[{ color: variant === 'solid' ? '#ffffff' : bgColor }, textStyle]}
             >
                 {label.toUpperCase()}
             </DSText>

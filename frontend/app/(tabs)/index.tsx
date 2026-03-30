@@ -91,7 +91,7 @@ export default function HomeFeed() {
 
     return (
         <View style={screenStyle}>
-            <NavBar />
+            <NavBar showInfo={true} />
             {isOffline && <OfflineBanner />}
 
             <View style={[styles.filterBar, {

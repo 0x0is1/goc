@@ -2,6 +2,15 @@ import { useCallback, useState, useEffect } from 'react';
 import { getFeed as apiFeed } from '@services/api';
 import { Post } from '@appTypes/index';
 
+const dedupeById = (arr: Post[]): Post[] => {
+    const seen = new Set<string>();
+    return arr.filter((p) => {
+        if (seen.has(p.id)) return false;
+        seen.add(p.id);
+        return true;
+    });
+};
+
 interface FeedHookState {
     posts: Post[];
     loading: boolean;
@@ -39,7 +48,9 @@ export function useFeed(initialSort: 'latest' | 'top' = 'latest', initialTag: st
             const result = await apiFeed(startCursor, sort, tag ?? undefined, bypassCache);
 
             setState((prev) => ({
-                posts: isRefresh ? result.posts : [...prev.posts, ...result.posts],
+                posts: isRefresh
+                    ? result.posts
+                    : dedupeById([...prev.posts, ...result.posts]),
                 loading: false,
                 error: null,
                 cursor: result.cursor,

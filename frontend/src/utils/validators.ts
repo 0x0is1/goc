@@ -18,7 +18,7 @@ export const createPostSchema = z.object({
         .trim(),
     articleLinks: z.array(z.string().url()).optional().default([]),
     youtubeLink: z.string().url().optional().or(z.literal('')),
-    tags: z.string().optional(),
+    tags: z.array(z.string()).optional(),
     showUserInfo: z.boolean().optional().default(true),
 });
 

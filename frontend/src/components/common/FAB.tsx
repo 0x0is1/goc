@@ -1,26 +1,29 @@
 import React from 'react';
-import { TouchableOpacity, StyleSheet } from 'react-native';
+import { TouchableOpacity, StyleSheet, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
 import { useAuthContext } from '@contexts/AuthContext';
 import { useToastContext } from '@contexts/ToastContext';
 import { useTheme } from '@contexts/ThemeContext';
 import { FAB_SIZE, FAB_BOTTOM_OFFSET, FAB_RIGHT_OFFSET } from '@utils/constants';
-import { useFeedback } from '@contexts/FeedbackContext';
 
-export function FAB() {
+interface FABProps {
+    onPress?: () => void;
+    icon?: keyof typeof Ionicons.glyphMap;
+    label?: string;
+    style?: ViewStyle;
+}
+
+export function FAB({ onPress, icon = 'add', label, style }: FABProps) {
     const { tokens } = useTheme();
     const { user } = useAuthContext();
     const { showToast } = useToastContext();
-    const { playClick } = useFeedback();
 
-    async function handlePress() {
-        playClick();
+    async function handleDefaultPress() {
         if (user) {
             router.push('/create');
         } else {
-            showToast('Sign in to share a Gem', 'info');
+            showToast('Sign in to share a Post', 'info');
             router.push('/login');
         }
     }
@@ -35,17 +38,22 @@ export function FAB() {
         backgroundColor: tokens.colors.accent,
         alignItems: 'center' as const,
         justifyContent: 'center' as const,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        ...style,
     };
 
     return (
         <TouchableOpacity
-            onPress={handlePress}
+            onPress={onPress || handleDefaultPress}
             style={fabStyle}
-            accessibilityLabel="Share a Gem"
+            accessibilityLabel={label || "Floating Action Button"}
             accessibilityRole="button"
         >
-            <Ionicons name="add" size={28} color={tokens.colors.accentForeground} />
+            <Ionicons name={icon} size={28} color={tokens.colors.accentForeground} />
         </TouchableOpacity>
     );
 }
-

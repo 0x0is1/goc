@@ -48,7 +48,14 @@ export const TweetEmbed = memo(({ tweetUrl, html: rawHtml, interactive = true, r
   }, [tweetId, refreshKey, onLoadStatus]);
 
   const onWebViewMessage = (event: any) => {
-    const h = parseInt(event.nativeEvent.data);
+    const raw = event.nativeEvent.data;
+    if (raw === 'error') {
+      setIsError(true);
+      setIsLoading(false);
+      onLoadStatus?.('error');
+      return;
+    }
+    const h = parseInt(raw);
     if (!isNaN(h) && h > 20) {
       setHeight(h);
       if (h > 100) {
@@ -101,13 +108,11 @@ export const TweetEmbed = memo(({ tweetUrl, html: rawHtml, interactive = true, r
           background: ${bg};
           overflow: hidden;
         }
-
         .twitter-tweet {
           margin: 0 !important;
           padding: 0 !important;
           width: 100% !important;
         }
-
         iframe {
           border-radius: 12px !important;
           overflow: hidden !important;
@@ -117,7 +122,7 @@ export const TweetEmbed = memo(({ tweetUrl, html: rawHtml, interactive = true, r
       </style>
     </head>
     <body id="tweet-container">
-      <blockquote class="twitter-tweet" data-theme="${theme}">
+      <blockquote class="twitter-tweet" data-theme="${theme}" data-dnt="true">
         <a href="https://twitter.com/i/status/${tweetId}"></a>
       </blockquote>
 
@@ -125,21 +130,21 @@ export const TweetEmbed = memo(({ tweetUrl, html: rawHtml, interactive = true, r
 
       <script>
         function sendHeight() {
-          const container = document.getElementById('tweet-container');
-          const h = container ? container.offsetHeight : document.documentElement.scrollHeight;
-          window.ReactNativeWebView.postMessage(h.toString());
+          var container = document.getElementById('tweet-container');
+          var h = container ? container.offsetHeight : document.documentElement.scrollHeight;
+          if (h > 30) window.ReactNativeWebView.postMessage(h.toString());
         }
 
         function observe() {
-          const observer = new MutationObserver(sendHeight);
+          var observer = new MutationObserver(sendHeight);
           observer.observe(document.body, { childList: true, subtree: true });
         }
 
         function load() {
           if (window.twttr && window.twttr.widgets) {
-            window.twttr.widgets.load().then(() => {
-              const intervals = [300, 800, 1500, 2500, 4000];
-              intervals.forEach(ms => setTimeout(sendHeight, ms));
+            window.twttr.widgets.load().then(function() {
+              var pts = [300, 800, 1500, 2500, 4000];
+              pts.forEach(function(t) { setTimeout(sendHeight, t); });
               observe();
             });
           } else {

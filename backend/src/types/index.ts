@@ -29,6 +29,31 @@ export interface Vote {
     createdAt: Timestamp;
 }
 
+export interface CancelledPerson {
+    id: string;
+    name: string;
+    description: string;
+    profession: string;
+    images: string[];
+    postLinks: string[];
+    avatar?: string;
+    isIndian: boolean;
+    isAnonymous: boolean;
+    authorId: string;
+    authorName: string;
+    upvotes: number;
+    downvotes: number;
+    createdAt: Timestamp;
+    updatedAt: Timestamp;
+}
+
+export interface CancelledVote {
+    userId: string;
+    personId: string;
+    type: 'up' | 'down';
+    createdAt: Timestamp;
+}
+
 export interface UserProfile {
     id: string;
     displayName: string;

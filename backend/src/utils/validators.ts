@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const tweetUrlSchema = z
     .string()
-    .regex(/^https?:\/\/(twitter\.com|x\.com)\/[\w]{1,50}\/status\/\d{10,25}$/, 'Invalid tweet URL format');
+    .regex(/^https?:\/\/(twitter\.com|x\.com)\/[\w]{1,50}\/status\/\d{10,25}(\?.*)?$/, 'Invalid tweet URL format');
 
 export const createPostSchema = z.object({
     tweetUrl: tweetUrlSchema,
@@ -27,6 +27,17 @@ export const paginationSchema = z.object({
 
 export const waybackRequestSchema = z.object({
     url: tweetUrlSchema,
+});
+
+export const createCancelledSchema = z.object({
+    name: z.string().min(2, 'Name too short').max(100, 'Name too long').trim(),
+    profession: z.string().min(2, 'Profession too short').max(100, 'Profession too long').trim(),
+    description: z.string().min(10, 'Description too short').max(5000, 'Description too long').trim(),
+    images: z.array(z.string()).optional().default([]),
+    postLinks: z.array(z.string().url()).optional().default([]),
+    avatar: z.string().optional(),
+    isIndian: z.boolean().optional(),
+    isAnonymous: z.boolean().optional(),
 });
 
 export type CreatePostInput = z.infer<typeof createPostSchema>;

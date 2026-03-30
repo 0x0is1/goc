@@ -67,7 +67,7 @@ export class PostService {
             articleLinks: data.articleLinks || [],
             youtubeLink: data.youtubeLink || null,
             tags: data.tags || [],
-            showUserInfo: data.showUserInfo !== false, 
+            showUserInfo: data.showUserInfo !== false,
             authorId: userId,
             authorName,
             authorAvatar,
@@ -81,7 +81,7 @@ export class PostService {
 
         await ref.set(postData);
 
-        
+
         setImmediate(async () => {
             try {
                 const snapshot = await SnapshotService.createSnapshotWithRetry(data.tweetUrl);
@@ -130,6 +130,48 @@ export class PostService {
         await db.collection('posts').doc(id).delete();
     }
 
+    static async updatePost(id: string, data: CreatePostInput, requestingUserId: string): Promise<Post> {
+        const postRef = db.collection('posts').doc(id);
+        const doc = await postRef.get();
+        if (!doc.exists) throw makeError('Post not found', 404, 'NOT_FOUND');
+
+        const post = doc.data()!;
+        if (post.authorId !== requestingUserId) {
+            throw makeError('Forbidden', 403, 'FORBIDDEN');
+        }
+
+        const updateData: any = {
+            title: data.title,
+            description: data.description,
+            articleLinks: data.articleLinks || [],
+            youtubeLink: data.youtubeLink || null,
+            tags: data.tags || [],
+            showUserInfo: data.showUserInfo !== false,
+            updatedAt: FieldValue.serverTimestamp(),
+        };
+
+        if (post.tweetUrl !== data.tweetUrl) {
+            updateData.tweetUrl = data.tweetUrl;
+            updateData.snapshotScreenshot = null;
+            updateData.snapshotTimestamp = null;
+
+            setImmediate(async () => {
+                try {
+                    const snapshot = await SnapshotService.createSnapshotWithRetry(data.tweetUrl);
+                    if (snapshot) {
+                        await PostService.updatePostSnapshot(id, snapshot);
+                    }
+                } catch (err) {
+                    console.error('Background snapshot failed during update:', err);
+                }
+            });
+        }
+
+        await postRef.update(updateData);
+        const updated = await postRef.get();
+        return PostService.serializePost(updated);
+    }
+
     static async getUserPosts(userId: string, limit: number, cursor?: string): Promise<FeedResult> {
         let query: any = db
             .collection('posts')
@@ -158,7 +200,7 @@ export class PostService {
     static async serializePost(doc: FirebaseFirestore.DocumentSnapshot): Promise<Post> {
         const data = doc.data()!;
 
-        
+
         let articleLinks = data.articleLinks || [];
         if (data.articleLink && typeof data.articleLink === 'string' && articleLinks.length === 0) {
             articleLinks = [data.articleLink];

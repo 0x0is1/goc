@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Switch, TouchableOpacity } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '@contexts/ThemeContext';
@@ -20,15 +20,20 @@ import { useFeedback } from '@contexts/FeedbackContext';
 export default function CreatePost() {
     const { tokens } = useTheme();
     const { user } = useAuthContext();
-    const { fields, fieldErrors, submitting, setField, submit } = useCreatePost();
+    const { editId } = useLocalSearchParams<{ editId: string }>();
+    const { fields, fieldErrors, submitting, setField, submit, loadPost } = useCreatePost();
     const [previewMode, setPreviewMode] = useState(false);
     const { playClick, playTick, playSuccess } = useFeedback();
+
+    const isEditing = !!editId;
 
     useEffect(() => {
         if (!user) {
             router.replace('/login');
+        } else if (editId) {
+            loadPost(editId);
         }
-    }, [user]);
+    }, [user, editId, loadPost]);
 
     const screenStyle = {
         flex: 1,
@@ -51,7 +56,7 @@ export default function CreatePost() {
 
     return (
         <View style={screenStyle}>
-            <NavBar title="Share a Gem" showBack />
+            <NavBar title={isEditing ? "Edit Post" : "Share a Post"} showBack />
             <ScrollView
                 contentContainerStyle={[
                     styles.content,
@@ -179,6 +184,9 @@ export default function CreatePost() {
                                 )}
                             </View>
                         ))}
+                        {fieldErrors.articleLinks && (
+                            <DSText size="sm" color="danger" style={{ marginTop: tokens.spacing.xs }}>{fieldErrors.articleLinks}</DSText>
+                        )}
                     </View>
 
                     <View>
@@ -209,12 +217,15 @@ export default function CreatePost() {
                             autoCapitalize="none"
                             accessibilityLabel="Tags input"
                         />
+                        {fieldErrors.tags && (
+                            <DSText size="sm" color="danger" style={{ marginTop: tokens.spacing.xs }}>{fieldErrors.tags}</DSText>
+                        )}
                     </View>
 
                     <View style={styles.toggleRow}>
                         <View style={{ flex: 1 }}>
                             <DSText size="base" weight="semiBold" color="textPrimary">Show my username</DSText>
-                            <DSText size="xs" color="textMuted">If disabled, this Gem will appear without your profile info.</DSText>
+                            <DSText size="xs" color="textMuted">If disabled, this Post will appear without your profile info.</DSText>
                         </View>
                         <Switch
                             value={fields.showUserInfo}
@@ -225,15 +236,15 @@ export default function CreatePost() {
                     </View>
 
                     <DSButton
-                        label="Publish Gem"
+                        label={isEditing ? "Save Changes" : "Publish Post"}
                         onPress={async () => {
-                            const success = await submit();
+                            const success = await submit(editId);
                             if (success) playSuccess();
                         }}
                         variant="solid"
                         fullWidth
                         loading={submitting}
-                        accessibilityLabel="Publish this Gem"
+                        accessibilityLabel="Publish this Post"
                     />
                 </View>
             </ScrollView>

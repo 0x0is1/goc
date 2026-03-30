@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { router } from 'expo-router';
-import { createPost as apiCreatePost } from '@services/api';
+import { createPost as apiCreatePost, updatePost as apiUpdatePost, getPost as apiGetPost } from '@services/api';
 import { createPostSchema } from '@utils/validators';
 import { useToastContext } from '@contexts/ToastContext';
 import { CreatePostFields, FieldErrors } from '@appTypes/index';
@@ -10,7 +10,8 @@ interface CreatePostHook {
     fieldErrors: FieldErrors;
     submitting: boolean;
     setField: (key: keyof CreatePostFields, value: string | boolean) => void;
-    submit: () => Promise<boolean>;
+    submit: (editId?: string) => Promise<boolean>;
+    loadPost: (id: string) => Promise<void>;
 }
 
 export function useCreatePost(): CreatePostHook {
@@ -32,8 +33,40 @@ export function useCreatePost(): CreatePostHook {
         setFieldErrors((prev) => ({ ...prev, [key]: undefined }));
     }, []);
 
-    const submit = useCallback(async () => {
-        const result = createPostSchema.safeParse(fields);
+    const loadPost = useCallback(async (id: string) => {
+        setSubmitting(true);
+        try {
+            const post = await apiGetPost(id);
+            setFields({
+                tweetUrl: post.tweetUrl,
+                title: post.title,
+                description: post.description,
+                articleLinks: post.articleLinks && post.articleLinks.length > 0 ? post.articleLinks : [''],
+                youtubeLink: post.youtubeLink || '',
+                tags: post.tags ? post.tags.join(', ') : '',
+                showUserInfo: post.showUserInfo !== false
+            });
+        } catch {
+            showToast('Failed to load post data.', 'error');
+        } finally {
+            setSubmitting(false);
+        }
+    }, [showToast]);
+
+    const submit = useCallback(async (editId?: string) => {
+        const processedLinks = (fields.articleLinks || []).filter(l => l.trim().length > 0);
+        const processedTags = fields.tags
+            ? fields.tags.split(',').map(t => t.trim()).filter(t => t.length > 0)
+            : [];
+
+        const validationFields = {
+            ...fields,
+            articleLinks: processedLinks,
+            tags: processedTags
+        };
+
+        console.log('[useCreatePost] Submitting validationFields:', JSON.stringify(validationFields, null, 2));
+        const result = createPostSchema.safeParse(validationFields);
         if (!result.success) {
             const errs: FieldErrors = {};
             result.error.issues.forEach((issue) => {
@@ -41,33 +74,34 @@ export function useCreatePost(): CreatePostHook {
                 errs[key] = issue.message;
             });
             setFieldErrors(errs);
+            showToast('Please correct the highlighted errors.', 'error');
             return false;
         }
         setSubmitting(true);
         try {
-            
-            const processedTags = fields.tags
-                ? fields.tags.split(',').map(t => t.trim()).filter(t => t.length > 0)
-                : [];
-
-            const processedLinks = (fields.articleLinks || []).filter(l => l.trim().length > 0);
-
-            await apiCreatePost({
+            const payload = {
                 ...result.data,
                 articleLinks: processedLinks,
                 tags: processedTags
-            });
-            showToast('Gem published!', 'success');
+            };
+
+            if (editId) {
+                await apiUpdatePost(editId, payload);
+                showToast('Post updated!', 'success');
+            } else {
+                await apiCreatePost(payload);
+                showToast('Post published!', 'success');
+            }
             router.replace('/');
             return true;
         } catch {
-            showToast('Failed to publish. Try again.', 'error');
+            showToast(`Failed to ${editId ? 'update' : 'publish'}. Try again.`, 'error');
             return false;
         } finally {
             setSubmitting(false);
         }
     }, [fields, showToast]);
 
-    return { fields, fieldErrors, submitting, setField, submit };
+    return { fields, fieldErrors, submitting, setField, submit, loadPost };
 }
 

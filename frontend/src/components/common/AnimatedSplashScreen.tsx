@@ -124,7 +124,7 @@ export const AnimatedSplashScreen: React.FC<Props> = ({ onAnimationComplete }) =
                         Black Hands
                     </DSText>
                     <DSText size="sm" weight="medium" color="textMuted" style={styles.subtitle}>
-                        Exposing Deceptism of Pre 2014 Era
+                        Snakes in the Ganges
                     </DSText>
                 </Animated.View>
 

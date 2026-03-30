@@ -41,10 +41,13 @@ export default function InfoScreen() {
             >
                 <Section title="About Black Hands" icon="information-circle-outline">
                     <DSText size="base" color="textMuted" style={styles.paragraph}>
-                        Black Hands is a community-driven platform dedicated to archiving and discussing the most significant (and often controversial) moments in political discourse.
+                        Black Hands is a community platform for exposing and archiving public figures — politicians, influencers, creators, and others — who have made statements or taken actions that deserve public scrutiny.
                     </DSText>
                     <DSText size="base" color="textMuted" style={styles.paragraph}>
-                        Our mission is to ensure that critical statements and actions by public officials are preserved and held up for public scrutiny, regardless of how quickly they might be deleted or buried in the news cycle.
+                        The Posts feed curates real, sourced controversies from across the web. The Snakes list is a community-maintained archive of individuals who have been publicly called out. Vote, discuss, and hold them accountable.
+                    </DSText>
+                    <DSText size="base" color="textMuted" style={styles.paragraph}>
+                        Nothing gets buried here. If it happened, it's recorded.
                     </DSText>
                 </Section>
 

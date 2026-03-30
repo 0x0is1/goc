@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, ScrollView, StyleSheet, Image, TouchableOpacity, Alert } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +19,7 @@ import { formatFullDate } from '@utils/formatters';
 import { NavBar } from '@components/common/NavBar';
 import { useFeedback } from '@contexts/FeedbackContext';
 import { useAuthContext } from '@contexts/AuthContext';
+import { deletePost } from '@services/api';
 
 export default function PostDetail() {
     const { id, showImage } = useLocalSearchParams<{ id: string, showImage?: string }>();
@@ -48,13 +49,48 @@ export default function PostDetail() {
     const markdownStyles = {
         body: {
             color: tokens.colors.textPrimary,
-            fontSize: 16,
-            lineHeight: 24,
+            fontSize: 15,
+            lineHeight: 26,
             fontFamily: 'Inter-Regular',
         },
         paragraph: {
-            marginBottom: 16,
+            marginBottom: 14,
+            color: tokens.colors.textPrimary,
         },
+        heading1: { color: tokens.colors.textPrimary, fontSize: 22, fontFamily: 'Inter-Bold', marginBottom: 10 },
+        heading2: { color: tokens.colors.textPrimary, fontSize: 19, fontFamily: 'Inter-SemiBold', marginBottom: 8 },
+        heading3: { color: tokens.colors.textPrimary, fontSize: 17, fontFamily: 'Inter-SemiBold', marginBottom: 6 },
+        strong: { color: tokens.colors.textPrimary, fontFamily: 'Inter-Bold' },
+        em: { fontStyle: 'italic' as const, color: tokens.colors.textMuted },
+        link: { color: tokens.colors.accent, textDecorationLine: 'none' as const },
+        blockquote: {
+            backgroundColor: tokens.colors.surface2,
+            borderLeftWidth: 3,
+            borderLeftColor: tokens.colors.accent,
+            paddingLeft: 14,
+            paddingVertical: 8,
+            borderRadius: 4,
+            marginVertical: 10,
+        },
+        code_inline: {
+            backgroundColor: tokens.colors.surface2,
+            color: tokens.colors.accent,
+            fontFamily: 'Inter-Regular',
+            fontSize: 13,
+            borderRadius: 4,
+            paddingHorizontal: 4,
+        },
+        fence: {
+            backgroundColor: tokens.colors.surface2,
+            borderWidth: 1,
+            borderColor: tokens.colors.border,
+            borderRadius: 8,
+            padding: 14,
+            marginVertical: 10,
+        },
+        hr: { backgroundColor: tokens.colors.border, height: 1, marginVertical: 14 },
+        bullet_list_icon: { color: tokens.colors.accent, marginRight: 8, fontWeight: 'bold' as const },
+        ordered_list_icon: { color: tokens.colors.accent, marginRight: 8, fontWeight: 'bold' as const },
     };
 
     if (loading && !post) {
@@ -92,15 +128,51 @@ export default function PostDetail() {
                     </DSText>
 
                     <View style={styles.topMetaRow}>
-                        <TouchableOpacity activeOpacity={0.7} onPress={() => {
-                            playTick();
-                            handleUserPress();
-                        }} style={styles.authorBadge}>
-                            <DSText size="sm" weight="bold" color="accent">@{post.authorName}</DSText>
-                        </TouchableOpacity>
-                        <DSText size="xs" color="textMuted">
-                            {formatFullDate(post.createdAt)}
-                        </DSText>
+                        <View style={styles.metaLeft}>
+                            <TouchableOpacity activeOpacity={0.7} onPress={() => {
+                                playTick();
+                                handleUserPress();
+                            }} style={styles.authorBadge}>
+                                <DSText size="sm" weight="bold" color="accent">@{post.authorName}</DSText>
+                            </TouchableOpacity>
+                            <DSText size="xs" color="textMuted">
+                                {formatFullDate(post.createdAt)}
+                            </DSText>
+                        </View>
+
+                        {user?.uid === post.authorId && (
+                            <View style={styles.ownerActions}>
+                                <TouchableOpacity
+                                    onPress={() => router.push({ pathname: '/create', params: { editId: post.id } })}
+                                    style={[styles.actionIcon, { backgroundColor: tokens.colors.surface2 }]}
+                                >
+                                    <Ionicons name="pencil-outline" size={16} color={tokens.colors.textMuted} />
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        playTick();
+                                        Alert.alert('Delete Post', 'Are you sure?', [
+                                            { text: 'Cancel', style: 'cancel' },
+                                            {
+                                                text: 'Delete',
+                                                style: 'destructive',
+                                                onPress: async () => {
+                                                    try {
+                                                        await deletePost(post.id);
+                                                        router.back();
+                                                    } catch (err) {
+                                                        Alert.alert('Error', 'Failed to delete post.');
+                                                    }
+                                                }
+                                            }
+                                        ]);
+                                    }}
+                                    style={[styles.actionIcon, { backgroundColor: tokens.colors.surface2 }]}
+                                >
+                                    <Ionicons name="trash-outline" size={16} color={tokens.colors.accent} />
+                                </TouchableOpacity>
+                            </View>
+                        )}
                     </View>
 
                     <View style={styles.actionRow}>
@@ -118,6 +190,7 @@ export default function PostDetail() {
                                 label={tag.replace(/^#/, '')}
                                 variant="solid"
                                 size="sm"
+                                textStyle={{ fontSize: 10 }}
                                 onPress={() => router.push({ pathname: '/', params: { tag: tag.replace(/^#/, '') } })}
                             />
                         ))}
@@ -234,6 +307,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'space-between',
         marginTop: 4,
+    },
+    metaLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    ownerActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    actionIcon: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     authorBadge: {
         backgroundColor: 'rgba(0,0,0,0.03)',

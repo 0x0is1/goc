@@ -39,4 +39,19 @@ export class NotificationService {
             logger.error('Error broadcasting FCM messages', { error });
         }
     }
+
+    static async notifyNewSnake(person: any): Promise<void> {
+        try {
+            const { UserService } = require('./UserService');
+            const tokens = await UserService.getAllFcmTokens();
+            if (tokens.length === 0) return;
+
+            const title = '🐍 New Snake Added!';
+            const body = `${person.name} (${person.profession}) has been added to the archive.`;
+
+            await NotificationService.broadcastMessage(tokens, title, body);
+        } catch (error) {
+            logger.error('Failed to notify new snake:', { error });
+        }
+    }
 }

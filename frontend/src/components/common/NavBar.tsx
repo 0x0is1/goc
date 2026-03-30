@@ -12,9 +12,10 @@ interface NavBarProps {
     title?: string;
     showBack?: boolean;
     rightElement?: React.ReactNode;
+    showInfo?: boolean;
 }
 
-export function NavBar({ title, showBack, rightElement }: NavBarProps) {
+export function NavBar({ title, showBack, rightElement, showInfo }: NavBarProps) {
     const { tokens } = useTheme();
     const insets = useSafeAreaInsets();
     const { playTick } = useFeedback();
@@ -61,7 +62,18 @@ export function NavBar({ title, showBack, rightElement }: NavBarProps) {
                 </View>
 
                 <View style={styles.right}>
-                    {rightElement}
+                    {rightElement ? rightElement : (showInfo && (
+                        <TouchableOpacity
+                            onPress={() => {
+                                playTick();
+                                router.push('/info');
+                            }}
+                            style={styles.iconBtn}
+                            accessibilityLabel="View Information"
+                        >
+                            <Ionicons name="information-circle-outline" size={24} color={tokens.colors.textPrimary} />
+                        </TouchableOpacity>
+                    ))}
                 </View>
             </View>
         </View>

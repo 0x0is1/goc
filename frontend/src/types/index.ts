@@ -97,3 +97,40 @@ export interface PaginatedResponse<T> extends ApiResponse<T[]> {
     };
 }
 
+export interface CancelledPerson {
+    id: string;
+    name: string;
+    description: string;
+    profession: string;
+    images: string[];
+    postLinks: string[];
+    avatar?: string;
+    isIndian: boolean;
+    isAnonymous: boolean;
+    authorId: string;
+    authorName: string;
+    upvotes: number;
+    downvotes: number;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface CreateCancelledFields {
+    name: string;
+    description: string;
+    profession: string;
+    images: string[];
+    postLinks: string[];
+    avatar?: string;
+    isIndian: boolean;
+    isAnonymous: boolean;
+}
+
+export interface CancelledFieldErrors {
+    name?: string;
+    description?: string;
+    profession?: string;
+    postLinks?: string;
+    avatar?: string;
+    isIndian?: string;
+}

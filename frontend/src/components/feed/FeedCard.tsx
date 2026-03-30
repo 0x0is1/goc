@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import Animated, {
@@ -15,6 +15,8 @@ import { useAuthContext } from '@contexts/AuthContext';
 import { Post } from '@appTypes/index';
 import { DSBadge } from '@ds/Badge';
 import { useFeedback } from '@contexts/FeedbackContext';
+import { deletePost } from '@services/api';
+import { MarkdownBody } from '@components/common/MarkdownBody';
 
 interface FeedCardProps {
   post: Post;
@@ -27,16 +29,49 @@ export const FeedCard = memo(({ post, refreshKey }: FeedCardProps) => {
   const relativeTime = useRelativeTime(post.createdAt);
   const { playTick } = useFeedback();
 
+  const isOwner = user?.uid === post.authorId;
+
   const handleUserPress = () => {
     playTick();
     if (post.authorName.toLowerCase() === 'anonymous') {
       return;
     }
-    if (post.authorId === user?.uid) {
+    if (isOwner) {
       router.push('/profile');
     } else {
       router.push(`/user/${post.authorId}`);
     }
+  };
+
+  const handleDelete = () => {
+    playTick();
+    Alert.alert(
+      'Delete Post',
+      'Are you sure you want to delete this post? This action cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deletePost(post.id);
+              Alert.alert('Success', 'Post deleted successfully. Please refresh the feed.');
+            } catch (err) {
+              Alert.alert('Error', 'Failed to delete post.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const handleEdit = () => {
+    playTick();
+    router.push({
+      pathname: '/create',
+      params: { editId: post.id }
+    });
   };
 
   const cardStyle = {
@@ -67,9 +102,21 @@ export const FeedCard = memo(({ post, refreshKey }: FeedCardProps) => {
                 {post.title}
               </DSText>
             </View>
-            <DSText size="xs" color="textMuted">
-              {relativeTime}
-            </DSText>
+            <View style={styles.headerActions}>
+              {isOwner && (
+                <View style={styles.ownerActions}>
+                  <TouchableOpacity onPress={handleEdit} style={[styles.actionIcon, { backgroundColor: tokens.colors.surface2 }]}>
+                    <Ionicons name="pencil-outline" size={14} color={tokens.colors.textMuted} />
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={handleDelete} style={[styles.actionIcon, { backgroundColor: tokens.colors.surface2 }]}>
+                    <Ionicons name="trash-outline" size={14} color={tokens.colors.accent} />
+                  </TouchableOpacity>
+                </View>
+              )}
+              <DSText size="xs" color="textMuted">
+                {relativeTime}
+              </DSText>
+            </View>
           </View>
 
           {post.tags && post.tags.length > 0 && (
@@ -80,6 +127,7 @@ export const FeedCard = memo(({ post, refreshKey }: FeedCardProps) => {
                   label={tag.replace(/^#/, '')}
                   variant="solid"
                   size="sm"
+                  textStyle={{ fontSize: 10 }}
                   onPress={() => router.push({ pathname: '/', params: { tag } })}
                 />
               ))}
@@ -89,15 +137,9 @@ export const FeedCard = memo(({ post, refreshKey }: FeedCardProps) => {
             </View>
           )}
 
-          <DSText
-            size="base"
-            color="textMuted"
-            numberOfLines={3}
-            ellipsizeMode="tail"
-            style={{ marginBottom: tokens.spacing.sm }}
-          >
-            {post.description}
-          </DSText>
+          <MarkdownBody maxLines={4} compact containerStyle={{ marginBottom: tokens.spacing.sm }}>
+            {post.description ?? ''}
+          </MarkdownBody>
 
           <TweetEmbed
             tweetUrl={post.tweetUrl}
@@ -192,8 +234,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
-    marginBottom: 8,
-    marginTop: 4,
+    marginBottom: 5,
+    marginTop: 0,
   },
   leftActions: {
     flexDirection: 'row',
@@ -204,4 +246,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 12,
   },
+  actionIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  ownerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginRight: 4,
+  }
 });

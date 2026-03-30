@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, ScrollView, StyleSheet } from 'react-native';
+import React, { useState } from 'react';
+import { View, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useTheme } from '@contexts/ThemeContext';
 import { useProfile } from '@hooks/useProfile';
@@ -7,6 +7,7 @@ import { DSText } from '@ds/Text';
 import { DSAvatar } from '@ds/Avatar';
 import { DSDivider } from '@ds/Divider';
 import { FeedCard } from '@components/feed/FeedCard';
+import { SnakeCard } from '@components/snakes/SnakeCard';
 import { NavBar } from '@components/common/NavBar';
 import { DSSkeletonCard } from '@ds/Skeleton';
 import { ErrorState } from '@components/common/ErrorState';
@@ -15,7 +16,15 @@ import { AVATAR_SIZE_LG } from '@utils/constants';
 export default function UserProfileScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const { tokens } = useTheme();
-    const { posts, profile, loading, error } = useProfile(id ?? '');
+    const { posts, cancelledEnlistments, profile, loading, error, refresh } = useProfile(id ?? '');
+    const [activeTab, setActiveTab] = React.useState<'posts' | 'snakes'>('posts');
+    const [refreshing, setRefreshing] = React.useState(false);
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await refresh(true);
+        setRefreshing(false);
+    };
 
     const screenStyle = {
         flex: 1,
@@ -52,6 +61,9 @@ export default function UserProfileScreen() {
         <View style={screenStyle}>
             <NavBar title={`@${authorName}`} showBack />
             <ScrollView
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={tokens.colors.accent} />
+                }
                 contentContainerStyle={[
                     styles.scrollContent,
                     { paddingBottom: tokens.layout.screenPaddingBottom }
@@ -62,34 +74,65 @@ export default function UserProfileScreen() {
                     <DSText size="xl" weight="bold" color="textPrimary">@{authorName}</DSText>
                 </View>
 
-                <View style={styles.statsRow}>
-                    <View style={styles.statItem}>
-                        <DSText size="xl" weight="extraBold" color="textPrimary">{String(posts.length)}</DSText>
-                        <DSText size="sm" color="textMuted">Posts</DSText>
+                <View style={[styles.statsCard, { backgroundColor: tokens.colors.surface, borderColor: tokens.colors.border }]}>
+                    <View style={styles.statBox}>
+                        <DSText size="lg" weight="extraBold" color="textPrimary">{String(posts.length)}</DSText>
+                        <DSText size="xs" weight="bold" color="textMuted">POSTS</DSText>
                     </View>
-                    <View style={styles.statItem}>
-                        <DSText size="xl" weight="extraBold" color="textPrimary">{String(profile?.upvotesReceived ?? 0)}</DSText>
-                        <DSText size="sm" color="textMuted">Karma</DSText>
+                    <View style={[styles.statDivider, { backgroundColor: tokens.colors.border }]} />
+                    <View style={styles.statBox}>
+                        <DSText size="lg" weight="extraBold" color="textPrimary">{String(profile?.upvotesGiven || 0)}</DSText>
+                        <DSText size="xs" weight="bold" color="textMuted">UPVOTED</DSText>
                     </View>
-                    <View style={styles.statItem}>
-                        <DSText size="xl" weight="extraBold" color="textPrimary">{String(profile?.upvotesGiven ?? 0)}</DSText>
-                        <DSText size="sm" color="textMuted">Votes Cast</DSText>
+                    <View style={[styles.statDivider, { backgroundColor: tokens.colors.border }]} />
+                    <View style={styles.statBox}>
+                        <DSText size="lg" weight="extraBold" color="textPrimary">{String(cancelledEnlistments.length)}</DSText>
+                        <DSText size="xs" weight="bold" color="textMuted">SNAKES</DSText>
+                    </View>
+                    <View style={[styles.statDivider, { backgroundColor: tokens.colors.border }]} />
+                    <View style={styles.statBox}>
+                        <DSText size="lg" weight="extraBold" style={{ color: tokens.colors.accent }}>{String((profile?.upvotesReceived || 0) * 10)}</DSText>
+                        <DSText size="xs" weight="bold" color="textMuted">KARMA</DSText>
                     </View>
                 </View>
 
-                <DSDivider style={{ marginVertical: tokens.spacing.md, marginHorizontal: tokens.spacing.md }} />
+                {/* Tab Switcher */}
+                <View style={styles.tabContainer}>
+                    <TouchableOpacity
+                        onPress={() => setActiveTab('posts')}
+                        style={[styles.tab, activeTab === 'posts' && { borderBottomColor: tokens.colors.accent, borderBottomWidth: 3 }]}
+                    >
+                        <DSText size="base" weight="bold" color={activeTab === 'posts' ? 'accent' : 'textMuted'}>Posts</DSText>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                        onPress={() => setActiveTab('snakes')}
+                        style={[styles.tab, activeTab === 'snakes' && { borderBottomColor: tokens.colors.accent, borderBottomWidth: 3 }]}
+                    >
+                        <DSText size="base" weight="bold" color={activeTab === 'snakes' ? 'accent' : 'textMuted'}>Snakes</DSText>
+                    </TouchableOpacity>
+                </View>
 
-                <DSText size="md" weight="semiBold" color="textPrimary" style={{ marginBottom: tokens.spacing.md, marginHorizontal: tokens.spacing.md }}>
-                    Posts from @{authorName}
-                </DSText>
-
-                <View style={{ gap: 0 }}>
-                    {posts.length > 0 ? (
-                        posts.map((post) => <FeedCard key={post.id} post={post} />)
+                <View style={{ paddingVertical: 8 }}>
+                    {activeTab === 'posts' ? (
+                        posts.length > 0 ? (
+                            posts.map((post) => <FeedCard key={post.id} post={post} />)
+                        ) : (
+                            <View style={{ padding: 40, alignItems: 'center' }}>
+                                <DSText size="base" color="textMuted">No posts yet.</DSText>
+                            </View>
+                        )
                     ) : (
-                        <View style={{ padding: 32, alignItems: 'center' }}>
-                            <DSText size="base" color="textMuted">@{authorName} has not posted anything yet.</DSText>
-                        </View>
+                        cancelledEnlistments.length > 0 ? (
+                            <View style={{ paddingTop: 8 }}>
+                                {cancelledEnlistments.map((person) => (
+                                    <SnakeCard key={person.id} person={person} onRefresh={refresh} />
+                                ))}
+                            </View>
+                        ) : (
+                            <View style={{ padding: 40, alignItems: 'center' }}>
+                                <DSText size="base" color="textMuted">No snakes yet.</DSText>
+                            </View>
+                        )
                     )}
                 </View>
             </ScrollView>
@@ -103,17 +146,33 @@ const styles = StyleSheet.create({
     },
     profileSection: {
         alignItems: 'center',
-        gap: 8,
-        marginBottom: 16,
+        marginBottom: 24,
     },
-    statsRow: {
+    statsCard: {
         flexDirection: 'row',
-        justifyContent: 'center',
-        gap: 40,
+        marginHorizontal: 16,
+        paddingVertical: 20,
+        borderRadius: 20,
+        borderWidth: 1,
+        marginBottom: 20,
+        justifyContent: 'space-around',
+        alignItems: 'center',
+    },
+    statBox: {
+        alignItems: 'center',
+        flex: 1,
+    },
+    statDivider: {
+        width: 1,
+        height: 30,
+    },
+    tabContainer: {
+        flexDirection: 'row',
+        paddingHorizontal: 24,
+        gap: 32,
         marginBottom: 8,
     },
-    statItem: {
-        alignItems: 'center',
-        gap: 2,
+    tab: {
+        paddingVertical: 10,
     },
 });

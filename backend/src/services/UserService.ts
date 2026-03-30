@@ -28,4 +28,9 @@ export class UserService {
         const updated = await ref.get();
         return { id, ...updated.data() } as UserProfile;
     }
+
+    static async getAllFcmTokens(): Promise<string[]> {
+        const snapshot = await db.collection('users').where('fcmToken', '!=', null).get();
+        return snapshot.docs.map(doc => doc.data().fcmToken).filter(Boolean);
+    }
 }

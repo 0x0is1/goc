@@ -40,6 +40,15 @@ export default function TabsLayout() {
                 }}
             />
             <Tabs.Screen
+                name="snakes"
+                options={{
+                    title: 'Snakes',
+                    tabBarIcon: ({ color, focused }) => (
+                        <Ionicons name={focused ? 'hand-left' : 'hand-left-outline'} size={22} color={color} />
+                    ),
+                }}
+            />
+            <Tabs.Screen
                 name="profile"
                 options={{
                     title: 'Profile',
@@ -51,10 +60,7 @@ export default function TabsLayout() {
             <Tabs.Screen
                 name="info"
                 options={{
-                    title: 'Info',
-                    tabBarIcon: ({ color, focused }) => (
-                        <Ionicons name={focused ? 'information-circle' : 'information-circle-outline'} size={22} color={color} />
-                    ),
+                    href: null,
                 }}
             />
         </Tabs>

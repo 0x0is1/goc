@@ -1,19 +1,19 @@
 import { useCallback, useEffect, useState } from 'react';
-import { votePost, getUserVote } from '@services/api';
+import { voteCancelledPerson, getUserSnakeVote } from '@services/api';
 import { VoteType } from '@appTypes/index';
 import { useAuthContext } from '@contexts/AuthContext';
 import { useToastContext } from '@contexts/ToastContext';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 
-interface VoteHook {
+interface SnakeVoteHook {
     currentVote: VoteType | null;
     upvotes: number;
     downvotes: number;
     vote: (type: VoteType) => Promise<void>;
 }
 
-export function useVote(postId: string, initialUpvotes: number, initialDownvotes: number): VoteHook {
+export function useSnakeVote(personId: string, initialUpvotes: number, initialDownvotes: number): SnakeVoteHook {
     const { user } = useAuthContext();
     const { showToast } = useToastContext();
     const [currentVote, setCurrentVote] = useState<VoteType | null>(null);
@@ -22,8 +22,8 @@ export function useVote(postId: string, initialUpvotes: number, initialDownvotes
 
     useEffect(() => {
         if (!user) return;
-        getUserVote(postId).then((v) => setCurrentVote(v?.type ?? null));
-    }, [postId, user]);
+        getUserSnakeVote(personId).then((v) => setCurrentVote(v?.type ?? null));
+    }, [personId, user]);
 
     const vote = useCallback(async (type: VoteType) => {
         if (!user) {
@@ -31,8 +31,10 @@ export function useVote(postId: string, initialUpvotes: number, initialDownvotes
             router.push('/login');
             return;
         }
+
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
+        // Capture current values before async boundary for rollback
         const prevVote = currentVote;
         const prevUp = upvotes;
         const prevDown = downvotes;
@@ -43,16 +45,15 @@ export function useVote(postId: string, initialUpvotes: number, initialDownvotes
             setUpvotes((v) => (type === 'up' ? Math.max(0, v - 1) : v));
             setDownvotes((v) => (type === 'down' ? Math.max(0, v - 1) : v));
             try {
-                // castVote handles same-type = unvote, and correctly adjusts author karma + voterGiven
-                const result = await votePost(postId, type);
+                const result = await voteCancelledPerson(personId, type);
                 setUpvotes(result.upvotes);
                 setDownvotes(result.downvotes);
                 setCurrentVote(result.vote?.type ?? null);
-            } catch {
+            } catch (err) {
                 setCurrentVote(prevVote);
                 setUpvotes(prevUp);
                 setDownvotes(prevDown);
-                showToast('Vote failed, try again', 'error');
+                showToast('Vote failed, please try again', 'error');
             }
         } else {
             // Optimistic new vote or switch
@@ -69,19 +70,20 @@ export function useVote(postId: string, initialUpvotes: number, initialDownvotes
                 return v;
             });
             try {
-                const result = await votePost(postId, type);
+                const result = await voteCancelledPerson(personId, type);
                 setUpvotes(result.upvotes);
                 setDownvotes(result.downvotes);
                 setCurrentVote(result.vote?.type ?? null);
-            } catch {
+            } catch (err) {
                 setCurrentVote(prevVote);
                 setUpvotes(prevUp);
                 setDownvotes(prevDown);
-                showToast('Vote failed, try again', 'error');
+                showToast('Vote failed, please try again', 'error');
             }
         }
+        // upvotes/downvotes intentionally excluded - captured via closure for rollback only
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [user, postId, currentVote, showToast]);
+    }, [user, personId, currentVote, showToast]);
 
     return { currentVote, upvotes, downvotes, vote };
 }
