@@ -23,6 +23,7 @@ export const paginationSchema = z.object({
     cursor: z.string().optional(),
     sort: z.enum(['latest', 'top']).optional().default('latest'),
     tag: z.string().optional(),
+    q: z.string().optional(),
 });
 
 export const waybackRequestSchema = z.object({

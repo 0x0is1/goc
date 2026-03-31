@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, StyleSheet, ScrollView, TouchableOpacity, Image, Switch, ActivityIndicator, Platform, Alert, Modal, FlatList, Pressable } from 'react-native';
+import { View, StyleSheet, ScrollView, TouchableOpacity, Image, Switch, ActivityIndicator, Platform, Alert, Modal, FlatList, Pressable, KeyboardAvoidingView } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@contexts/ThemeContext';
@@ -80,8 +80,8 @@ export default function EnlistSnakeScreen() {
             const ImageManipulator = require('expo-image-manipulator');
             const result = await ImageManipulator.manipulateAsync(
                 uri,
-                [{ resize: { width: 800 } }],
-                { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG, base64: true }
+                [{ resize: { width: 700 } }],
+                { compress: 0.6, format: ImageManipulator.SaveFormat.JPEG, base64: true }
             );
             return `data:image/jpeg;base64,${result.base64}`;
         } catch (err) {
@@ -164,6 +164,7 @@ export default function EnlistSnakeScreen() {
             playSuccess();
             router.back();
         } catch (err) {
+            console.error(err);
             showToast('Failed to save entry. Try again.', 'error');
         } finally {
             setSubmitting(false);
@@ -191,201 +192,206 @@ export default function EnlistSnakeScreen() {
     return (
         <View style={{ flex: 1, backgroundColor: tokens.colors.background }}>
             <NavBar title={editId ? "Edit Snake" : "Expose a Snake"} showBack />
-            <ScrollView contentContainerStyle={styles.content}>
-                {/* Header Section */}
-                <View style={styles.headerRow}>
-                    <TouchableOpacity onPress={pickAvatar} style={styles.avatarPicker}>
-                        {fields.avatar ? (
-                            <Image source={{ uri: fields.avatar }} style={styles.avatarImage} />
-                        ) : (
-                            <View style={[styles.avatarPlaceholder, { backgroundColor: tokens.colors.surface2 }]}>
-                                <Ionicons name="camera-outline" size={24} color={tokens.colors.textMuted} />
-                                <DSText size="xs" color="textMuted">AVATAR</DSText>
-                            </View>
-                        )}
-                    </TouchableOpacity>
-                    <View style={{ flex: 1 }}>
-                        <DSText size="xs" weight="bold" color="textMuted" style={{ marginBottom: 4, letterSpacing: 1 }}>FULL NAME</DSText>
-                        <DSInput
-                            placeholder="e.g. John Doe"
-                            value={fields.name}
-                            onChangeText={(val: string) => setFields(p => ({ ...p, name: val }))}
-                        />
-                    </View>
-                </View>
-
-                {/* Profession Dropdown */}
-                <View style={styles.sectionHeader}>
-                    <DSText size="xs" weight="bold" color="textMuted" style={{ letterSpacing: 1 }}>PROFESSION</DSText>
-                </View>
-                <TouchableOpacity
-                    style={[styles.selectBox, { borderColor: tokens.colors.border, backgroundColor: tokens.colors.surface }]}
-                    onPress={() => {
-                        playTick();
-                        setShowProfessionModal(true);
-                    }}
-                >
-                    <View style={styles.selectContent}>
-                        {selectedProf ? (
-                            <>
-                                <Ionicons name={selectedProf.icon as any} size={18} color={tokens.colors.accent} />
-                                <DSText weight="medium">{selectedProf.label}</DSText>
-                            </>
-                        ) : (
-                            <DSText color="textMuted">Select Profession...</DSText>
-                        )}
-                    </View>
-                    <Ionicons name="chevron-down" size={18} color={tokens.colors.textMuted} />
-                </TouchableOpacity>
-
-                {/* Markdown Editor Section */}
-                <View style={styles.sectionHeader}>
-                    <DSText size="xs" weight="bold" color="textMuted" style={{ letterSpacing: 1 }}>ACTIONS / DESCRIPTION</DSText>
-                </View>
-                <View style={{ gap: 10 }}>
-                    <View style={styles.tabBar}>
-                        <TouchableOpacity
-                            style={activeTabStyle(!previewMode)}
-                            onPress={() => {
-                                playTick();
-                                setPreviewMode(false);
-                            }}
-                        >
-                            <DSText size="sm" weight="semiBold" color={!previewMode ? 'accent' : 'textMuted'}>Write</DSText>
-                        </TouchableOpacity>
-                        <TouchableOpacity
-                            style={activeTabStyle(previewMode)}
-                            onPress={() => {
-                                playTick();
-                                setPreviewMode(true);
-                            }}
-                        >
-                            <DSText size="sm" weight="semiBold" color={previewMode ? 'accent' : 'textMuted'}>Preview</DSText>
-                        </TouchableOpacity>
-                    </View>
-                    <View style={[styles.editorContainer, { borderColor: tokens.colors.border, backgroundColor: tokens.colors.surface }]}>
-                        <MarkdownEditor
-                            value={fields.description}
-                            onChange={(val) => setFields(p => ({ ...p, description: val }))}
-                            previewMode={previewMode}
-                            minHeight={150}
-                        />
-                    </View>
-                </View>
-
-                {/* Proof Gallery */}
-                <View style={styles.sectionHeader}>
-                    <DSText size="xs" weight="bold" color="textMuted" style={{ letterSpacing: 1 }}>PROOF IMAGES (MAX 5)</DSText>
-                </View>
-                <View style={styles.proofGallery}>
-                    {fields.images.map((img, idx) => (
-                        <View key={idx} style={styles.proofImageWrapper}>
-                            <Image source={{ uri: img }} style={styles.proofImage} />
-                            <TouchableOpacity
-                                style={[styles.removeImage, { backgroundColor: tokens.colors.surface }]}
-                                onPress={() => setFields(p => ({ ...p, images: p.images.filter((_, i) => i !== idx) }))}
-                            >
-                                <Ionicons name="close" size={16} color="red" />
-                            </TouchableOpacity>
-                        </View>
-                    ))}
-                    {fields.images.length < 5 && (
-                        <TouchableOpacity onPress={addProofImage} style={[styles.addImageBtn, { borderColor: tokens.colors.border, borderStyle: 'dashed' }]}>
-                            <Ionicons name="add" size={32} color={tokens.colors.textMuted} />
-                            <DSText size="xs" color="textMuted">ADD PROOF</DSText>
-                        </TouchableOpacity>
-                    )}
-                </View>
-
-                {/* Settings Section */}
-                <View style={styles.settingsSection}>
-                    <View style={styles.toggleRow}>
-                        <View style={{ flex: 1 }}>
-                            <DSText size="sm" weight="semiBold">Nationality: Indian</DSText>
-                            <DSText size="xs" color="textMuted">Is this person an Indian citizen?</DSText>
-                        </View>
-                        <Switch
-                            value={fields.isIndian}
-                            onValueChange={(val) => {
-                                playTick();
-                                setFields(p => ({ ...p, isIndian: val }));
-                            }}
-                            trackColor={{ false: tokens.colors.border, true: tokens.colors.accent }}
-                            thumbColor="#ffffff"
-                        />
-                    </View>
-
-                    <View style={styles.toggleRow}>
-                        <View style={{ flex: 1 }}>
-                            <DSText size="sm" weight="semiBold">Post Anonymously</DSText>
-                            <DSText size="xs" color="textMuted">Hide your identity as the contributor.</DSText>
-                        </View>
-                        <Switch
-                            value={fields.isAnonymous}
-                            onValueChange={(val) => {
-                                playTick();
-                                setFields(p => ({ ...p, isAnonymous: val }));
-                            }}
-                            trackColor={{ false: tokens.colors.border, true: tokens.colors.accent }}
-                            thumbColor="#ffffff"
-                        />
-                    </View>
-                </View>
-
-                <DSButton
-                    label={editId ? "Update Entry" : "Expose Snake"}
-                    onPress={handleSubmit}
-                    variant="solid"
-                    fullWidth
-                    loading={submitting}
-                />
-            </ScrollView>
-
-            {/* Custom Profession Modal */}
-            <Modal
-                visible={showProfessionModal}
-                transparent
-                animationType="fade"
-                onRequestClose={() => setShowProfessionModal(false)}
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
             >
-                <Pressable
-                    style={styles.modalOverlay}
-                    onPress={() => setShowProfessionModal(false)}
-                >
-                    <View style={[styles.modalContent, { backgroundColor: tokens.colors.surface, borderColor: tokens.colors.border }]}>
-                        <View style={styles.modalHeader}>
-                            <DSText weight="bold" size="lg">Select Profession</DSText>
-                            <TouchableOpacity onPress={() => setShowProfessionModal(false)}>
-                                <Ionicons name="close" size={24} color={tokens.colors.textPrimary} />
+                <ScrollView contentContainerStyle={styles.content}>
+                    {/* Header Section */}
+                    <View style={styles.headerRow}>
+                        <TouchableOpacity onPress={pickAvatar} style={styles.avatarPicker}>
+                            {fields.avatar ? (
+                                <Image source={{ uri: fields.avatar }} style={styles.avatarImage} />
+                            ) : (
+                                <View style={[styles.avatarPlaceholder, { backgroundColor: tokens.colors.surface2 }]}>
+                                    <Ionicons name="camera-outline" size={24} color={tokens.colors.textMuted} />
+                                    <DSText size="xs" color="textMuted">AVATAR</DSText>
+                                </View>
+                            )}
+                        </TouchableOpacity>
+                        <View style={{ flex: 1 }}>
+                            <DSText size="xs" weight="bold" color="textMuted" style={{ marginBottom: 4, letterSpacing: 1 }}>FULL NAME</DSText>
+                            <DSInput
+                                placeholder="e.g. John Doe"
+                                value={fields.name}
+                                onChangeText={(val: string) => setFields(p => ({ ...p, name: val }))}
+                            />
+                        </View>
+                    </View>
+
+                    {/* Profession Dropdown */}
+                    <View style={styles.sectionHeader}>
+                        <DSText size="xs" weight="bold" color="textMuted" style={{ letterSpacing: 1 }}>PROFESSION</DSText>
+                    </View>
+                    <TouchableOpacity
+                        style={[styles.selectBox, { borderColor: tokens.colors.border, backgroundColor: tokens.colors.surface }]}
+                        onPress={() => {
+                            playTick();
+                            setShowProfessionModal(true);
+                        }}
+                    >
+                        <View style={styles.selectContent}>
+                            {selectedProf ? (
+                                <>
+                                    <Ionicons name={selectedProf.icon as any} size={18} color={tokens.colors.accent} />
+                                    <DSText weight="medium">{selectedProf.label}</DSText>
+                                </>
+                            ) : (
+                                <DSText color="textMuted">Select Profession...</DSText>
+                            )}
+                        </View>
+                        <Ionicons name="chevron-down" size={18} color={tokens.colors.textMuted} />
+                    </TouchableOpacity>
+
+                    {/* Markdown Editor Section */}
+                    <View style={styles.sectionHeader}>
+                        <DSText size="xs" weight="bold" color="textMuted" style={{ letterSpacing: 1 }}>ACTIONS / DESCRIPTION</DSText>
+                    </View>
+                    <View style={{ gap: 10 }}>
+                        <View style={styles.tabBar}>
+                            <TouchableOpacity
+                                style={activeTabStyle(!previewMode)}
+                                onPress={() => {
+                                    playTick();
+                                    setPreviewMode(false);
+                                }}
+                            >
+                                <DSText size="sm" weight="semiBold" color={!previewMode ? 'accent' : 'textMuted'}>Write</DSText>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={activeTabStyle(previewMode)}
+                                onPress={() => {
+                                    playTick();
+                                    setPreviewMode(true);
+                                }}
+                            >
+                                <DSText size="sm" weight="semiBold" color={previewMode ? 'accent' : 'textMuted'}>Preview</DSText>
                             </TouchableOpacity>
                         </View>
-                        <FlatList
-                            data={PROFESSIONS}
-                            keyExtractor={item => item.value}
-                            renderItem={({ item }) => (
-                                <TouchableOpacity
-                                    style={[
-                                        styles.modalItem,
-                                        fields.profession === item.value && { backgroundColor: tokens.colors.surface2 }
-                                    ]}
-                                    onPress={() => {
-                                        playTick();
-                                        setFields(p => ({ ...p, profession: item.value }));
-                                        setShowProfessionModal(false);
-                                    }}
-                                >
-                                    <Ionicons name={item.icon as any} size={20} color={fields.profession === item.value ? tokens.colors.accent : tokens.colors.textMuted} />
-                                    <DSText weight={fields.profession === item.value ? "bold" : "medium"}>{item.label}</DSText>
-                                    {fields.profession === item.value && (
-                                        <Ionicons name="checkmark" size={18} color={tokens.colors.accent} style={{ marginLeft: 'auto' }} />
-                                    )}
-                                </TouchableOpacity>
-                            )}
-                            contentContainerStyle={{ paddingVertical: 10 }}
-                        />
+                        <View style={[styles.editorContainer, { borderColor: tokens.colors.border, backgroundColor: tokens.colors.surface }]}>
+                            <MarkdownEditor
+                                value={fields.description}
+                                onChange={(val) => setFields(p => ({ ...p, description: val }))}
+                                previewMode={previewMode}
+                                minHeight={150}
+                            />
+                        </View>
                     </View>
-                </Pressable>
-            </Modal>
+
+                    {/* Proof Gallery */}
+                    <View style={styles.sectionHeader}>
+                        <DSText size="xs" weight="bold" color="textMuted" style={{ letterSpacing: 1 }}>PROOF IMAGES (MAX 5)</DSText>
+                    </View>
+                    <View style={styles.proofGallery}>
+                        {fields.images.map((img, idx) => (
+                            <View key={idx} style={styles.proofImageWrapper}>
+                                <Image source={{ uri: img }} style={styles.proofImage} />
+                                <TouchableOpacity
+                                    style={[styles.removeImage, { backgroundColor: tokens.colors.surface }]}
+                                    onPress={() => setFields(p => ({ ...p, images: p.images.filter((_, i) => i !== idx) }))}
+                                >
+                                    <Ionicons name="close" size={16} color="red" />
+                                </TouchableOpacity>
+                            </View>
+                        ))}
+                        {fields.images.length < 5 && (
+                            <TouchableOpacity onPress={addProofImage} style={[styles.addImageBtn, { borderColor: tokens.colors.border, borderStyle: 'dashed' }]}>
+                                <Ionicons name="add" size={32} color={tokens.colors.textMuted} />
+                                <DSText size="xs" color="textMuted">ADD PROOF</DSText>
+                            </TouchableOpacity>
+                        )}
+                    </View>
+
+                    {/* Settings Section */}
+                    <View style={styles.settingsSection}>
+                        <View style={styles.toggleRow}>
+                            <View style={{ flex: 1 }}>
+                                <DSText size="sm" weight="semiBold">Nationality: Indian</DSText>
+                                <DSText size="xs" color="textMuted">Is this person an Indian citizen?</DSText>
+                            </View>
+                            <Switch
+                                value={fields.isIndian}
+                                onValueChange={(val) => {
+                                    playTick();
+                                    setFields(p => ({ ...p, isIndian: val }));
+                                }}
+                                trackColor={{ false: tokens.colors.border, true: tokens.colors.accent }}
+                                thumbColor="#ffffff"
+                            />
+                        </View>
+
+                        <View style={styles.toggleRow}>
+                            <View style={{ flex: 1 }}>
+                                <DSText size="sm" weight="semiBold">Post Anonymously</DSText>
+                                <DSText size="xs" color="textMuted">Hide your identity as the contributor.</DSText>
+                            </View>
+                            <Switch
+                                value={fields.isAnonymous}
+                                onValueChange={(val) => {
+                                    playTick();
+                                    setFields(p => ({ ...p, isAnonymous: val }));
+                                }}
+                                trackColor={{ false: tokens.colors.border, true: tokens.colors.accent }}
+                                thumbColor="#ffffff"
+                            />
+                        </View>
+                    </View>
+
+                    <DSButton
+                        label={editId ? "Update Entry" : "Expose Snake"}
+                        onPress={handleSubmit}
+                        variant="solid"
+                        fullWidth
+                        loading={submitting}
+                    />
+                </ScrollView>
+
+                {/* Custom Profession Modal */}
+                <Modal
+                    visible={showProfessionModal}
+                    transparent
+                    animationType="fade"
+                    onRequestClose={() => setShowProfessionModal(false)}
+                >
+                    <Pressable
+                        style={styles.modalOverlay}
+                        onPress={() => setShowProfessionModal(false)}
+                    >
+                        <View style={[styles.modalContent, { backgroundColor: tokens.colors.surface, borderColor: tokens.colors.border }]}>
+                            <View style={styles.modalHeader}>
+                                <DSText weight="bold" size="lg">Select Profession</DSText>
+                                <TouchableOpacity onPress={() => setShowProfessionModal(false)}>
+                                    <Ionicons name="close" size={24} color={tokens.colors.textPrimary} />
+                                </TouchableOpacity>
+                            </View>
+                            <FlatList
+                                data={PROFESSIONS}
+                                keyExtractor={item => item.value}
+                                renderItem={({ item }) => (
+                                    <TouchableOpacity
+                                        style={[
+                                            styles.modalItem,
+                                            fields.profession === item.value && { backgroundColor: tokens.colors.surface2 }
+                                        ]}
+                                        onPress={() => {
+                                            playTick();
+                                            setFields(p => ({ ...p, profession: item.value }));
+                                            setShowProfessionModal(false);
+                                        }}
+                                    >
+                                        <Ionicons name={item.icon as any} size={20} color={fields.profession === item.value ? tokens.colors.accent : tokens.colors.textMuted} />
+                                        <DSText weight={fields.profession === item.value ? "bold" : "medium"}>{item.label}</DSText>
+                                        {fields.profession === item.value && (
+                                            <Ionicons name="checkmark" size={18} color={tokens.colors.accent} style={{ marginLeft: 'auto' }} />
+                                        )}
+                                    </TouchableOpacity>
+                                )}
+                                contentContainerStyle={{ paddingVertical: 10 }}
+                            />
+                        </View>
+                    </Pressable>
+                </Modal>
+            </KeyboardAvoidingView>
         </View>
     );
 }

@@ -13,7 +13,7 @@ export const listCancelledPersons = asyncHandler(async (req: AuthenticatedReques
     });
     const queryText = req.query['q'] as string | undefined;
 
-    const result = await CancelledService.getFeed(query.limit, query.cursor, query.sort as 'latest' | 'top', queryText);
+    const result = await CancelledService.getFeed(query.limit, query.cursor, query.sort as 'latest' | 'top', queryText, req.user?.uid);
     const response: PaginatedResponse<CancelledPerson> = {
         success: true,
         data: result.persons,
@@ -82,7 +82,7 @@ export const getUserEnlistments = asyncHandler(async (req: AuthenticatedRequest,
         limit: req.query['limit'],
         cursor: req.query['cursor'],
     });
-    const result = await CancelledService.getUserEnlistments(userId, query.limit, query.cursor);
+    const result = await CancelledService.getUserEnlistments(userId, query.limit, query.cursor, req.user?.uid);
     const response: PaginatedResponse<CancelledPerson> = {
         success: true,
         data: result.persons,

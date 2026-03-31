@@ -105,15 +105,15 @@ export function VoteButtons({ postId, upvotes, downvotes, iconSize = 18 }: VoteB
 const styles = StyleSheet.create({
     row: {
         flexDirection: 'row',
-        gap: 6, // Reduced gap to avoid overlap in narrow containers
+        gap: 6,
         alignItems: 'center',
     },
     pill: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 3,
-        paddingHorizontal: 8, // Reduced padding for compactness
-        paddingVertical: 5,
+        paddingHorizontal: 18,
+        paddingVertical: 6,
         borderRadius: 20,
     },
 });

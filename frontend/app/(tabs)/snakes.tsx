@@ -4,7 +4,7 @@ import { useTheme } from '@contexts/ThemeContext';
 import { NavBar } from '@components/common/NavBar';
 import { EmptyState } from '@components/common/EmptyState';
 import { FAB } from '@components/common/FAB';
-import { SnakeCard } from '@components/snakes/SnakeCard';
+import { SnakeListItem } from '@components/snakes/SnakeListItem';
 import { getCancelledPersons } from '@services/api';
 import { CancelledPerson } from '@appTypes/index';
 import { DSText } from '@ds/Text';
@@ -24,7 +24,7 @@ export default function SnakesScreen() {
     const [hasMore, setHasMore] = useState(false);
 
     const fetchData = useCallback(async (isRefreshing = false) => {
-        if (isRefreshing) setRefreshing(true);
+        if (isRefreshing && persons.length > 0) setRefreshing(true);
         else setLoading(true);
 
         try {
@@ -51,8 +51,8 @@ export default function SnakesScreen() {
     useEffect(() => {
         setPersons([]);
         setCursor(null);
-        initialLoad.current = true; // Mark as just mounted so focus doesn't double-fetch
-        fetchData(true);
+        initialLoad.current = true;
+        fetchData(false); // Use loading state for skeletons when sort changes
     }, [sort]);
 
     // Re-fetch when returning from snake-enlist (create/edit)
@@ -121,11 +121,11 @@ export default function SnakesScreen() {
 
     return (
         <View style={{ flex: 1, backgroundColor: tokens.colors.background }}>
-            <NavBar title="Snakes in the Ganges" showInfo={true} />
+            <NavBar title="Snakes List" showInfo={true} />
+            {renderHeader()}
 
             {loading && persons.length === 0 ? (
                 <View style={{ gap: 0 }}>
-                    {renderHeader()}
                     <DSSkeletonCard />
                     <DSSkeletonCard />
                     <DSSkeletonCard />
@@ -134,13 +134,13 @@ export default function SnakesScreen() {
                 <FlatList
                     data={persons}
                     keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (
-                        <SnakeCard
+                    renderItem={({ item, index }) => (
+                        <SnakeListItem
                             person={item}
-                            onRefresh={handleRefresh}
+                            rank={index + 1}
+                            onRefresh={() => fetchData(true)}
                         />
                     )}
-                    ListHeaderComponent={renderHeader}
                     ListEmptyComponent={
                         <View style={{ marginTop: 100 }}>
                             <EmptyState
@@ -177,6 +177,7 @@ export default function SnakesScreen() {
 
 const styles = StyleSheet.create({
     listContent: {
+        paddingTop: 8,
         paddingBottom: 100,
     },
     filterBar: {

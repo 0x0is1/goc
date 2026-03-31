@@ -111,6 +111,7 @@ export interface CancelledPerson {
     authorName: string;
     upvotes: number;
     downvotes: number;
+    userVote?: 'up' | 'down' | null;
     createdAt: string;
     updatedAt: string;
 }

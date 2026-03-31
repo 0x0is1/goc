@@ -16,7 +16,7 @@ interface CancelledFeedResult {
 }
 
 export class CancelledService {
-    static async getFeed(limit: number, cursor?: string, sort: 'latest' | 'top' = 'latest', queryText?: string): Promise<CancelledFeedResult> {
+    static async getFeed(limit: number, cursor?: string, sort: 'latest' | 'top' = 'latest', queryText?: string, userId?: string): Promise<CancelledFeedResult> {
         let query: any = db.collection('cancelled_persons');
 
         if (sort === 'top') {
@@ -25,7 +25,11 @@ export class CancelledService {
             query = query.orderBy('createdAt', 'desc');
         }
 
-        query = query.limit(limit + 1);
+        if (queryText) {
+            query = query.limit(100);
+        } else {
+            query = query.limit(limit + 1);
+        }
 
         if (cursor) {
             const cursorDoc = await db.collection('cancelled_persons').doc(cursor).get();
@@ -35,18 +39,45 @@ export class CancelledService {
         }
 
         const snapshot = await query.get();
-        let persons = snapshot.docs.slice(0, limit).map((doc: any) => CancelledService.serializePerson(doc));
+        let allPersons = snapshot.docs.map((doc: any) => CancelledService.serializePerson(doc));
 
+        let filteredPersons = allPersons;
         if (queryText) {
             const lowerQuery = queryText.toLowerCase();
-            persons = persons.filter((p: CancelledPerson) =>
-                p.name.toLowerCase().includes(lowerQuery) ||
-                p.profession.toLowerCase().includes(lowerQuery)
-            );
+            filteredPersons = allPersons.filter((p: CancelledPerson) => {
+                const nameMatch = (p.name || '').toLowerCase().includes(lowerQuery);
+                const profMatch = (p.profession || '').toLowerCase().includes(lowerQuery);
+                const descMatch = (p.description || '').toLowerCase().includes(lowerQuery);
+                return nameMatch || profMatch || descMatch;
+            });
         }
 
-        const hasMore = snapshot.docs.length > limit;
-        const nextCursor = hasMore ? snapshot.docs[limit - 1].id : null;
+        let persons = filteredPersons.slice(0, limit);
+
+        // Fetch user votes if userId is provided
+        if (userId && persons.length > 0) {
+            const personIds = persons.map((p: CancelledPerson) => p.id);
+            const votesSnapshot = await db.collection('cancelled_votes')
+                .where('userId', '==', userId)
+                .where('personId', 'in', personIds)
+                .get();
+
+            const voteMap = new Map();
+            votesSnapshot.docs.forEach(doc => {
+                const data = doc.data();
+                voteMap.set(data.personId, data.type);
+            });
+
+            persons = persons.map((p: CancelledPerson) => ({
+                ...p,
+                userVote: voteMap.get(p.id) || null
+            }));
+        }
+
+        const hasMore = !queryText && snapshot.docs.length > limit;
+        const nextCursor = (hasMore || (queryText && filteredPersons.length > limit))
+            ? snapshot.docs[Math.min(snapshot.docs.length - 1, limit)].id
+            : (queryText && filteredPersons.length > 0) ? filteredPersons[filteredPersons.length - 1].id : null;
 
         return { persons, cursor: nextCursor, hasMore };
     }
@@ -207,7 +238,7 @@ export class CancelledService {
         });
     }
 
-    static async getUserEnlistments(userId: string, limit: number, cursor?: string): Promise<CancelledFeedResult> {
+    static async getUserEnlistments(userId: string, limit: number, cursor?: string, requestingUserId?: string): Promise<CancelledFeedResult> {
         let query: any = db
             .collection('cancelled_persons')
             .where('authorId', '==', userId)
@@ -222,7 +253,27 @@ export class CancelledService {
         }
 
         const snapshot = await query.get();
-        const persons = snapshot.docs.slice(0, limit).map((doc: any) => CancelledService.serializePerson(doc));
+        let persons = snapshot.docs.slice(0, limit).map((doc: any) => CancelledService.serializePerson(doc));
+
+        // Fetch user votes if requestingUserId is provided
+        if (requestingUserId && persons.length > 0) {
+            const personIds = persons.map((p: CancelledPerson) => p.id);
+            const votesSnapshot = await db.collection('cancelled_votes')
+                .where('userId', '==', requestingUserId)
+                .where('personId', 'in', personIds)
+                .get();
+
+            const voteMap = new Map();
+            votesSnapshot.docs.forEach(doc => {
+                const data = doc.data();
+                voteMap.set(data.personId, data.type);
+            });
+
+            persons = persons.map((p: CancelledPerson) => ({
+                ...p,
+                userVote: voteMap.get(p.id) || null
+            }));
+        }
         const hasMore = snapshot.docs.length > limit;
         const nextCursor = hasMore ? snapshot.docs[limit - 1].id : null;
 

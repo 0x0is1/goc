@@ -93,11 +93,13 @@ export async function getFeed(
     cursor?: string,
     sort: 'latest' | 'top' = 'latest',
     tag?: string,
-    bypassCache?: boolean
+    bypassCache?: boolean,
+    q?: string
 ): Promise<FeedResult> {
     let url = `/posts?limit=10&sort=${sort}`;
     if (cursor) url += `&cursor=${cursor}`;
     if (tag) url += `&tag=${encodeURIComponent(tag)}`;
+    if (q) url += `&q=${encodeURIComponent(q)}`;
 
     const res = await fetchApi<PaginatedResponse<Post>>(url, { bypassCache });
     return {
@@ -209,12 +211,14 @@ export interface CancelledFeedResult {
 export async function getCancelledPersons(
     cursor?: string,
     sort: 'latest' | 'top' = 'latest',
-    query?: string,
-    bypassCache?: boolean
+    userId?: string,
+    bypassCache?: boolean,
+    q?: string
 ): Promise<CancelledFeedResult> {
     let url = `/cancelled?limit=10&sort=${sort}`;
     if (cursor) url += `&cursor=${cursor}`;
-    if (query) url += `&q=${encodeURIComponent(query)}`;
+    if (userId) url += `&userId=${userId}`;
+    if (q) url += `&q=${encodeURIComponent(q)}`;
 
     const res = await fetchApi<PaginatedResponse<CancelledPerson>>(url, { bypassCache });
     return {

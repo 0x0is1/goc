@@ -12,6 +12,7 @@ interface TweetEmbedProps {
   refreshKey?: string | number;
   onLoadStatus?: (status: 'loading' | 'loaded' | 'error') => void;
 }
+const tweetTimeout = 0.5 * 60 * 1000; // 30 seconds
 
 const getTweetId = (url?: string) => {
   if (!url) return null;
@@ -42,7 +43,7 @@ export const TweetEmbed = memo(({ tweetUrl, html: rawHtml, interactive = true, r
         setIsLoading(false);
         onLoadStatus?.('error');
       }
-    }, 8000);
+    }, tweetTimeout);
 
     return () => clearTimeout(timer);
   }, [tweetId, refreshKey, onLoadStatus]);

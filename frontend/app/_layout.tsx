@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -53,11 +53,31 @@ function RootLayoutInner() {
     });
 
     const [animationComplete, setAnimationComplete] = React.useState(false);
+    const [isReady, setIsReady] = React.useState(false);
+
+    // useEffect(() => {
+    //     async function setOnboarding() {
+    //         await AsyncStorage.setItem('has_seen_onboarding', 'false');
+    //     }
+    //     setOnboarding();
+    // }, []);
 
     useEffect(() => {
-        if (fontsLoaded) {
-            SplashScreen.hideAsync();
-        }
+        const prepare = async () => {
+            if (fontsLoaded) {
+                try {
+                    const onboarding = await AsyncStorage.getItem('has_seen_onboarding');
+                    if (onboarding !== 'true' && pathname !== '/onboarding') {
+                        router.replace('/onboarding');
+                    }
+                } catch (e) {
+                    console.log('Onboarding check failed:', e);
+                } finally {
+                    SplashScreen.hideAsync();
+                }
+            }
+        };
+        prepare();
     }, [fontsLoaded]);
 
     useEffect(() => {

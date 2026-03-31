@@ -1,118 +1,87 @@
 import React, { memo } from 'react';
-import { View, StyleSheet, TouchableOpacity, Alert, Image, Linking, Text } from 'react-native';
+import { View, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import Animated, { FadeIn, useSharedValue, useAnimatedStyle, withSequence, withSpring } from 'react-native-reanimated';
 import { useTheme } from '@contexts/ThemeContext';
 import { DSText } from '@ds/Text';
-import { useAuthContext } from '@contexts/AuthContext';
+import { DSBadge } from '@ds/Badge';
 import { CancelledPerson } from '@appTypes/index';
-import { useFeedback } from '@contexts/FeedbackContext';
-import { deleteCancelledPerson } from '@services/api';
 import { useSnakeVote } from '@hooks/useSnakeVote';
-import { MarkdownBody } from '@components/common/MarkdownBody';
+import { useFeedback } from '@contexts/FeedbackContext';
+import Animated, { FadeIn, useSharedValue, useAnimatedStyle, withSpring, withSequence } from 'react-native-reanimated';
 
-interface SnakeCardProps {
+interface SnakeListItemProps {
     person: CancelledPerson;
+    rank: number;
     onRefresh?: () => void;
 }
 
-export const SnakeCard = memo(({ person, onRefresh }: SnakeCardProps) => {
-    const { tokens, colorMode } = useTheme();
-    const { user } = useAuthContext();
-    const { playTick, playClick, playSuccess } = useFeedback();
-
+export const SnakeListItem = memo(({ person, rank, onRefresh }: SnakeListItemProps) => {
+    const { tokens } = useTheme();
+    const { playTick, playSuccess } = useFeedback();
     const { currentVote, upvotes, downvotes, vote } = useSnakeVote(person.id, person.upvotes, person.downvotes ?? 0);
 
     const upScale = useSharedValue(1);
     const downScale = useSharedValue(1);
+
     const upStyle = useAnimatedStyle(() => ({ transform: [{ scale: upScale.value }] }));
     const downStyle = useAnimatedStyle(() => ({ transform: [{ scale: downScale.value }] }));
 
-    const isOwner = user?.uid === person.authorId;
-    const authorName = person.isAnonymous ? 'Anonymous' : (person.authorName || 'Unknown');
-    const upActive = currentVote === 'up';
-    const downActive = currentVote === 'down';
+    const handlePress = () => {
+        playTick();
+        router.push(`/snake/${person.id}`);
+    };
 
     const handleVote = async (type: 'up' | 'down') => {
         const scale = type === 'up' ? upScale : downScale;
         scale.value = withSequence(
-            withSpring(1.08, { damping: 12, stiffness: 250 }),
-            withSpring(1, { damping: 15, stiffness: 200 })
+            withSpring(1.08, { damping: 10, stiffness: 220 }),
+            withSpring(1, { damping: 12, stiffness: 180 })
         );
         if (type !== currentVote) playSuccess();
-        else playClick();
-        await vote(type);
+        await vote(type as any);
     };
 
-    const handleDelete = () => {
-        playTick();
-        Alert.alert('Remove Snake', 'Delete this entry permanently?', [
-            { text: 'Cancel', style: 'cancel' },
-            {
-                text: 'Delete', style: 'destructive',
-                onPress: async () => {
-                    try { await deleteCancelledPerson(person.id); onRefresh?.(); }
-                    catch { Alert.alert('Error', 'Failed to delete.'); }
-                }
-            }
-        ]);
-    };
-
-    const handleEdit = () => {
-        playClick();
-        router.push({ pathname: '/snake-enlist', params: { editId: person.id } });
-    };
+    const upActive = currentVote === 'up';
+    const downActive = currentVote === 'down';
 
     return (
         <Animated.View entering={FadeIn} style={[styles.card, { backgroundColor: tokens.colors.surface, borderColor: tokens.colors.border }]}>
-            <TouchableOpacity activeOpacity={0.9} onPress={() => router.push(`/snake/${person.id}`)} style={styles.mainArea}>
+            <TouchableOpacity activeOpacity={0.9} onPress={handlePress} style={styles.mainArea}>
+                {/* Rank Badge */}
+                <View style={[styles.rankBadge, { backgroundColor: tokens.colors.accent }]}>
+                    <DSText size="xs" weight="extraBold" color="accentForeground">#{rank}</DSText>
+                </View>
+
                 <View style={styles.contentRow}>
                     {person.avatar ? (
                         <Image source={{ uri: person.avatar }} style={styles.avatar} />
                     ) : (
-                        <View style={[styles.avatar, styles.avatarPlaceholder, { backgroundColor: tokens.colors.surface2 }]}>
+                        <View style={[styles.avatarPlaceholder, { backgroundColor: tokens.colors.surface2 }]}>
                             <Ionicons name="person" size={40} color={tokens.colors.textMuted} />
                         </View>
                     )}
 
                     <View style={styles.info}>
-                        <View style={styles.nameRow}>
-                            <DSText size="xl" weight="extraBold" color="textPrimary" numberOfLines={1} style={{ flex: 1 }}>
-                                {person.name}
-                            </DSText>
-                            {isOwner && (
-                                <View style={styles.ownerActions}>
-                                    <TouchableOpacity onPress={handleEdit} style={[styles.iconBtn, { backgroundColor: tokens.colors.surface2 }]}>
-                                        <Ionicons name="pencil" size={13} color={tokens.colors.textPrimary} />
-                                    </TouchableOpacity>
-                                    <TouchableOpacity onPress={handleDelete} style={[styles.iconBtn, { backgroundColor: 'rgba(239,68,68,0.12)' }]}>
-                                        <Ionicons name="trash-outline" size={13} color={tokens.colors.danger} />
-                                    </TouchableOpacity>
-                                </View>
-                            )}
-                        </View>
-
+                        <DSText size="xl" weight="extraBold" color="textPrimary" numberOfLines={1}>
+                            {person.name}
+                        </DSText>
                         <View style={[styles.profBadge, { backgroundColor: tokens.colors.surface2 }]}>
                             <Ionicons name="briefcase-outline" size={12} color={tokens.colors.accent} />
                             <DSText size="xs" weight="bold" color="textMuted">
-                                {(person.profession || 'Unknown').toUpperCase()}
+                                {person.profession.toUpperCase()}
                             </DSText>
                         </View>
-
-                        <View style={styles.metaRow}>
-                            {person.isIndian ? (
-                                <View style={[styles.badge, { backgroundColor: tokens.colors.accent + '22' }]}>
-                                    <DSText size="xs" weight="bold" style={{ color: tokens.colors.accent }}>INDIAN NATIVE</DSText>
-                                </View>
-                            ) : null}
+                        <View style={styles.badgeContainer}>
+                            <DSBadge
+                                label={person.isIndian ? "INDIAN NATIVE" : "NON-INDIAN"}
+                                variant={person.isIndian ? "solid" : "outline"}
+                                color={person.isIndian ? "accent" : "textMuted"}
+                                size="sm"
+                            />
                         </View>
                     </View>
                 </View>
-
-                <MarkdownBody compact containerStyle={{ marginTop: 16 }}>
-                    {person.description ?? ''}
-                </MarkdownBody>
             </TouchableOpacity>
 
             <View style={[styles.footer, { borderTopColor: tokens.colors.border }]}>
@@ -160,8 +129,6 @@ export const SnakeCard = memo(({ person, onRefresh }: SnakeCardProps) => {
     );
 });
 
-SnakeCard.displayName = 'SnakeCard';
-
 const styles = StyleSheet.create({
     card: {
         marginHorizontal: 16,
@@ -178,30 +145,37 @@ const styles = StyleSheet.create({
     mainArea: {
         padding: 20,
     },
+    rankBadge: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderBottomRightRadius: 16,
+        zIndex: 10,
+    },
     contentRow: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: 18,
     },
     avatar: {
-        width: 100,
-        height: 100,
-        borderRadius: 50,
+        width: 110,
+        height: 110,
+        borderRadius: 55,
         borderWidth: 3,
         borderColor: 'rgba(255,255,255,0.8)',
     },
     avatarPlaceholder: {
+        width: 110,
+        height: 110,
+        borderRadius: 55,
         justifyContent: 'center',
         alignItems: 'center',
     },
     info: {
         flex: 1,
         gap: 2,
-    },
-    nameRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'flex-start',
     },
     profBadge: {
         flexDirection: 'row',
@@ -214,26 +188,9 @@ const styles = StyleSheet.create({
         marginTop: 4,
         marginBottom: 4,
     },
-    metaRow: {
+    badgeContainer: {
         flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 6,
-    },
-    badge: {
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        borderRadius: 6,
-    },
-    ownerActions: {
-        flexDirection: 'row',
-        gap: 6,
-    },
-    iconBtn: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        justifyContent: 'center',
-        alignItems: 'center',
+        marginTop: 4,
     },
     footer: {
         borderTopWidth: 1,
@@ -253,3 +210,5 @@ const styles = StyleSheet.create({
         borderRadius: 20,
     },
 });
+
+export default SnakeListItem;

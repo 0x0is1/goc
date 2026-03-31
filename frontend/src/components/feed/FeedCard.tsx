@@ -203,10 +203,9 @@ const styles = StyleSheet.create({
   },
   actionRow: {
     flexDirection: 'row',
-    justifyContent: 'flex-start',
+    justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 8,
-    gap: 24,
   },
   headerRow: {
     flexDirection: 'row',
@@ -229,6 +228,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 4,
     paddingVertical: 6,
+    justifyContent: 'flex-end',
   },
   tagContainer: {
     flexDirection: 'row',

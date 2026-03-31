@@ -11,8 +11,9 @@ export const listPosts = asyncHandler(async (req: AuthenticatedRequest, res: Res
         cursor: req.query['cursor'],
         sort: req.query['sort'],
         tag: req.query['tag'],
+        q: req.query['q'],
     });
-    const result = await PostService.getFeed(query.limit, query.cursor, query.sort as 'latest' | 'top', query.tag);
+    const result = await PostService.getFeed(query.limit, query.cursor, query.sort as 'latest' | 'top', query.tag as string, query.q as string);
     const response: PaginatedResponse<Post> = {
         success: true,
         data: result.posts,

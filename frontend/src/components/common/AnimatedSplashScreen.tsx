@@ -22,6 +22,7 @@ interface Props {
 
 export const AnimatedSplashScreen: React.FC<Props> = ({ onAnimationComplete }) => {
     const { tokens } = useTheme();
+    const [status, setStatus] = React.useState('Checking for updates...');
 
     const logoOpacity = useSharedValue(0);
     const logoScale = useSharedValue(0.8);
@@ -32,15 +33,15 @@ export const AnimatedSplashScreen: React.FC<Props> = ({ onAnimationComplete }) =
     useEffect(() => {
         const initialize = async () => {
             try {
-                
+
                 const updateTask = (async () => {
                     try {
                         if (!__DEV__) {
+                            setStatus('Checking for updates...');
                             const { isAvailable } = await Updates.checkForUpdateAsync();
                             if (isAvailable) {
+                                setStatus('Downloading update...');
                                 await Updates.fetchUpdateAsync();
-                                
-                                
                             }
                         }
                     } catch (e) {
@@ -51,30 +52,31 @@ export const AnimatedSplashScreen: React.FC<Props> = ({ onAnimationComplete }) =
                 const prefetchTask = (async () => {
                     try {
                         const { getFeed } = require('@services/api');
-                        await getFeed(); 
+                        setStatus('Waking up backend node workers...');
+                        await getFeed();
                     } catch (e) {
                         console.log('[Splash] Prefetch failed:', e);
                     }
                 })();
 
-                
+
                 await Promise.all([updateTask, prefetchTask, new Promise(r => setTimeout(r, 2500))]);
             } catch (e) {
                 console.log('[Splash] Initialization error:', e);
             }
         };
 
-        
+
         logoOpacity.value = withTiming(1, { duration: 800 });
         logoScale.value = withTiming(1, { duration: 1000, easing: Easing.out(Easing.exp) });
         contentOpacity.value = withDelay(400, withTiming(1, { duration: 800 }));
 
-        
+
         loaderWidth.value = withDelay(600, withTiming(1, { duration: 2000, easing: Easing.inOut(Easing.quad) }));
 
-        
+
         initialize().then(() => {
-            
+
             containerOpacity.value = withDelay(
                 500,
                 withTiming(0, { duration: 600 }, (finished) => {
@@ -137,6 +139,12 @@ export const AnimatedSplashScreen: React.FC<Props> = ({ onAnimationComplete }) =
                         ]}
                     />
                 </View>
+
+                <Animated.View style={[styles.statusText, contentAnimatedStyle]}>
+                    <DSText size="xs" weight="bold" color="textMuted" style={{ textAlign: 'center' }}>
+                        {status.toUpperCase()}
+                    </DSText>
+                </Animated.View>
             </View>
         </Animated.View>
     );
@@ -188,5 +196,9 @@ const styles = StyleSheet.create({
     loaderBar: {
         height: '100%',
         borderRadius: 2,
+    },
+    statusText: {
+        marginTop: 16,
+        paddingHorizontal: 32,
     },
 });

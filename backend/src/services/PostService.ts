@@ -18,7 +18,7 @@ interface FeedResult {
 }
 
 export class PostService {
-    static async getFeed(limit: number, cursor?: string, sort: 'latest' | 'top' = 'latest', tag?: string): Promise<FeedResult> {
+    static async getFeed(limit: number, cursor?: string, sort: 'latest' | 'top' = 'latest', tag?: string, queryText?: string): Promise<FeedResult> {
         let query: any = db.collection('posts');
 
         if (tag) {
@@ -31,7 +31,11 @@ export class PostService {
             query = query.orderBy('createdAt', 'desc');
         }
 
-        query = query.limit(limit + 1);
+        if (queryText) {
+            query = query.limit(100); // Fetch more for search to improve filter yield
+        } else {
+            query = query.limit(limit + 1);
+        }
 
         if (cursor) {
             const cursorDoc = await db.collection('posts').doc(cursor).get();
@@ -41,12 +45,26 @@ export class PostService {
         }
 
         const snapshot = await query.get();
-        const posts = await Promise.all(
-            snapshot.docs.slice(0, limit).map((doc: any) => PostService.serializePost(doc))
+        let allPosts = await Promise.all(
+            snapshot.docs.map((doc: any) => PostService.serializePost(doc))
         );
 
-        const hasMore = snapshot.docs.length > limit;
-        const nextCursor = hasMore ? snapshot.docs[limit - 1].id : null;
+        let filteredPosts = allPosts;
+        if (queryText) {
+            const lowerQuery = queryText.toLowerCase();
+            filteredPosts = allPosts.filter(p => {
+                const titleMatch = (p.title || '').toLowerCase().includes(lowerQuery);
+                const descMatch = (p.description || '').toLowerCase().includes(lowerQuery);
+                const tagMatch = (p.tags || []).some((t: string) => t.toLowerCase().includes(lowerQuery));
+                return titleMatch || descMatch || tagMatch;
+            });
+        }
+
+        const posts = filteredPosts.slice(0, limit);
+        const hasMore = !queryText && snapshot.docs.length > limit;
+        const nextCursor = (hasMore || (queryText && filteredPosts.length > limit))
+            ? snapshot.docs[Math.min(snapshot.docs.length - 1, limit)].id
+            : (queryText && filteredPosts.length > 0) ? filteredPosts[filteredPosts.length - 1].id : null;
 
         return { posts, cursor: nextCursor, hasMore };
     }
