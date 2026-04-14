@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Image, TouchableOpacity, Alert, Dimensions, Modal } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, ScrollView, StyleSheet, Image, TouchableOpacity, Alert, Dimensions, Modal, RefreshControl } from 'react-native';
 import { useLocalSearchParams, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@contexts/ThemeContext';
@@ -24,10 +24,16 @@ export default function SnakeDetail() {
     const { id } = useLocalSearchParams<{ id: string }>();
     const { tokens, colorMode } = useTheme();
     const { user } = useAuthContext();
-    const { person, loading, error, userVote, handleVote } = useCancelledPerson(id ?? '');
-    const { count: suggestionCount } = useSuggestionCount(id ?? '');
+    const { person, loading, error, userVote, handleVote, refresh } = useCancelledPerson(id ?? '');
+    const { count: suggestionCount, refreshCount } = useSuggestionCount(id ?? '');
     const { playClick, playTick, playSuccess } = useFeedback();
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (person) {
+            refreshCount();
+        }
+    }, [person, refreshCount]);
 
     const upScale = useSharedValue(1);
     const downScale = useSharedValue(1);
@@ -100,6 +106,17 @@ export default function SnakeDetail() {
             <ScrollView
                 contentContainerStyle={{ paddingBottom: tokens.layout.screenPaddingBottom + 100 }}
                 showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={loading}
+                        onRefresh={() => {
+                            playTick();
+                            refresh();
+                            refreshCount();
+                        }}
+                        tintColor={tokens.colors.accent}
+                    />
+                }
             >
                 {/* Hero Header */}
                 <View style={[styles.hero, { backgroundColor: tokens.colors.surface }]}>
@@ -133,10 +150,10 @@ export default function SnakeDetail() {
                                         {suggestionCount > 0 && (
                                             <TouchableOpacity
                                                 onPress={() => router.push(`/suggestions/list/${person.id}`)}
-                                                style={[styles.suggestionBadge, { backgroundColor: tokens.colors.accent + '20' }]}
+                                                style={[styles.suggestionBadge, { backgroundColor: tokens.colors.accent }]}
                                             >
-                                                <Ionicons name="bulb" size={12} color={tokens.colors.accent} />
-                                                <DSText size="xs" weight="bold" color="accent">{suggestionCount}</DSText>
+                                                <Ionicons name="bulb" size={12} color={tokens.colors.accentForeground} />
+                                                <DSText size="xs" weight="extraBold" color="accentForeground">{suggestionCount}</DSText>
                                             </TouchableOpacity>
                                         )}
                                         <TouchableOpacity
@@ -330,8 +347,9 @@ const styles = StyleSheet.create({
     heroBadges: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 12,
-        marginTop: 4,
+        flexWrap: 'wrap',
+        gap: 8,
+        marginTop: 6,
     },
     editBtn: {
         flexDirection: 'row',
@@ -350,9 +368,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 4,
-        paddingHorizontal: 8,
-        paddingVertical: 4,
-        borderRadius: 12,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 10,
+        elevation: 2,
     },
     suggestBtn: {
         flexDirection: 'row',

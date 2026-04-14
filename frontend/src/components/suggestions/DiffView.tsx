@@ -16,7 +16,12 @@ export const DiffView: React.FC<DiffViewProps> = ({ label, original, suggested }
     if (!isChanged) return null;
 
     const renderValue = (val: any) => {
-        if (Array.isArray(val)) return val.join(', ');
+        if (Array.isArray(val)) {
+            return val.map(v => (typeof v === 'string' && v.startsWith('data:image/')) ? '[Image]' : String(v)).join(', ');
+        }
+        if (typeof val === 'string' && val.startsWith('data:image/')) {
+            return '[Image Data]';
+        }
         if (typeof val === 'boolean') return val ? 'Yes' : 'No';
         return String(val || 'None');
     };
