@@ -274,3 +274,48 @@ export async function getUserCancelledEnlistments(userId: string, bypassCache?: 
     const res = await fetchApi<PaginatedResponse<CancelledPerson>>(`/cancelled/user/${userId}`, { bypassCache });
     return res.data || [];
 }
+
+export interface EditSuggestion {
+    id: string;
+    targetId: string;
+    targetType: 'post' | 'snake';
+    authorId: string;
+    authorName: string;
+    opId: string;
+    originalData: any;
+    suggestedData: any;
+    status: 'pending' | 'approved' | 'rejected';
+    createdAt: string;
+    updatedAt: string;
+}
+
+export async function createEditSuggestion(data: Partial<EditSuggestion>): Promise<EditSuggestion> {
+    const res = await fetchApi<ApiResponse<EditSuggestion>>('/suggestions', {
+        method: 'POST',
+        body: JSON.stringify(data)
+    });
+    return res.data!;
+}
+
+export async function getSuggestionsForTarget(targetId: string): Promise<EditSuggestion[]> {
+    const res = await fetchApi<ApiResponse<EditSuggestion[]>>(`/suggestions/target/${targetId}`);
+    return res.data || [];
+}
+
+export async function getSuggestionCount(targetId: string): Promise<number> {
+    const res = await fetchApi<ApiResponse<{ count: number }>>(`/suggestions/target/${targetId}/count`);
+    return res.data?.count || 0;
+}
+
+export async function approveEditSuggestion(id: string): Promise<void> {
+    await fetchApi<ApiResponse<void>>(`/suggestions/${id}/approve`, { method: 'POST' });
+}
+
+export async function rejectEditSuggestion(id: string): Promise<void> {
+    await fetchApi<ApiResponse<void>>(`/suggestions/${id}/reject`, { method: 'POST' });
+}
+
+export const getSuggestionById = async (id: string): Promise<EditSuggestion> => {
+    const res = await fetchApi<ApiResponse<EditSuggestion>>(`/suggestions/${id}`);
+    return res.data!;
+};

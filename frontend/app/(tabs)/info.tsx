@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet, Linking, TouchableOpacity } from 'react-native';
+import { View, ScrollView, StyleSheet, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '@contexts/ThemeContext';
 import { DSText } from '@ds/Text';
@@ -47,7 +47,7 @@ export default function InfoScreen() {
                         The Posts feed curates real, sourced controversies from across the web. The Snakes list is a community-maintained archive of individuals who have been publicly called out. Vote, discuss, and hold them accountable.
                     </DSText>
                     <DSText size="base" color="textMuted" style={styles.paragraph}>
-                        Nothing gets buried here. If it happened, it's recorded.
+                        Nothing gets buried here. If it happened, it&apos;s recorded.
                     </DSText>
                 </Section>
 

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, ScrollView, TouchableOpacity, Image, Switch, ActivityIndicator, Platform, Alert, Modal, FlatList, Pressable, KeyboardAvoidingView } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,7 +11,7 @@ import { MarkdownEditor } from '@components/post/MarkdownEditor';
 import { useAuthContext } from '@contexts/AuthContext';
 import { useToastContext } from '@contexts/ToastContext';
 import { useFeedback } from '@contexts/FeedbackContext';
-import { getCancelledPerson, createCancelledPerson, updateCancelledPerson } from '@services/api';
+import { getCancelledPerson, createCancelledPerson, updateCancelledPerson, createEditSuggestion } from '@services/api';
 
 const PROFESSIONS = [
     { label: 'Celebrity', value: 'Celebrity', icon: 'star' },
@@ -25,10 +25,9 @@ const PROFESSIONS = [
 
 export default function EnlistSnakeScreen() {
     const { tokens } = useTheme();
-    const { user } = useAuthContext();
     const { showToast } = useToastContext();
     const { playTick, playSuccess } = useFeedback();
-    const { editId } = useLocalSearchParams<{ editId?: string }>();
+    const { editId, suggestId } = useLocalSearchParams<{ editId?: string, suggestId?: string }>();
 
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
@@ -48,8 +47,10 @@ export default function EnlistSnakeScreen() {
     useEffect(() => {
         if (editId) {
             loadData(editId);
+        } else if (suggestId) {
+            loadData(suggestId);
         }
-    }, [editId]);
+    }, [editId, suggestId]);
 
     const loadData = async (id: string) => {
         setLoading(true);
@@ -65,7 +66,7 @@ export default function EnlistSnakeScreen() {
                 isIndian: typeof data.isIndian === 'boolean' ? data.isIndian : true,
                 isAnonymous: typeof data.isAnonymous === 'boolean' ? data.isAnonymous : false,
             });
-        } catch (err) {
+        } catch {
             showToast('Failed to load entry data.', 'error');
         } finally {
             setLoading(false);
@@ -154,7 +155,25 @@ export default function EnlistSnakeScreen() {
                 isAnonymous: !!fields.isAnonymous,
             };
 
-            if (editId) {
+            if (suggestId) {
+                const original = await getCancelledPerson(suggestId);
+                await createEditSuggestion({
+                    targetId: suggestId,
+                    targetType: 'snake',
+                    opId: original.authorId,
+                    originalData: {
+                        name: original.name,
+                        description: original.description,
+                        profession: original.profession,
+                        avatar: original.avatar,
+                        images: original.images,
+                        postLinks: original.postLinks,
+                        isIndian: original.isIndian,
+                    },
+                    suggestedData: payload
+                });
+                showToast('Suggestion submitted for review!', 'success');
+            } else if (editId) {
                 await updateCancelledPerson(editId, payload);
                 showToast('Archive entry updated!', 'success');
             } else {
@@ -163,8 +182,7 @@ export default function EnlistSnakeScreen() {
             }
             playSuccess();
             router.back();
-        } catch (err) {
-            console.error(err);
+        } catch {
             showToast('Failed to save entry. Try again.', 'error');
         } finally {
             setSubmitting(false);
@@ -338,7 +356,7 @@ export default function EnlistSnakeScreen() {
                     </View>
 
                     <DSButton
-                        label={editId ? "Update Entry" : "Expose Snake"}
+                        label={suggestId ? "Submit Suggestion" : editId ? "Update Entry" : "Expose Snake"}
                         onPress={handleSubmit}
                         variant="solid"
                         fullWidth

@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { router } from 'expo-router';
-import { createPost as apiCreatePost, updatePost as apiUpdatePost, getPost as apiGetPost } from '@services/api';
+import { createPost as apiCreatePost, updatePost as apiUpdatePost, getPost as apiGetPost, createEditSuggestion } from '@services/api';
 import { createPostSchema } from '@utils/validators';
 import { useToastContext } from '@contexts/ToastContext';
 import { CreatePostFields, FieldErrors } from '@appTypes/index';
@@ -10,7 +10,7 @@ interface CreatePostHook {
     fieldErrors: FieldErrors;
     submitting: boolean;
     setField: (key: keyof CreatePostFields, value: string | boolean) => void;
-    submit: (editId?: string) => Promise<boolean>;
+    submit: (params: { editId?: string, suggestId?: string, opId?: string }) => Promise<boolean>;
     loadPost: (id: string) => Promise<void>;
 }
 
@@ -53,7 +53,8 @@ export function useCreatePost(): CreatePostHook {
         }
     }, [showToast]);
 
-    const submit = useCallback(async (editId?: string) => {
+    const submit = useCallback(async (params: { editId?: string, suggestId?: string, opId?: string } = {}) => {
+        const { editId, suggestId, opId } = params;
         const processedLinks = (fields.articleLinks || []).filter(l => l.trim().length > 0);
         const processedTags = fields.tags
             ? fields.tags.split(',').map(t => t.trim()).filter(t => t.length > 0)
@@ -65,7 +66,6 @@ export function useCreatePost(): CreatePostHook {
             tags: processedTags
         };
 
-        console.log('[useCreatePost] Submitting validationFields:', JSON.stringify(validationFields, null, 2));
         const result = createPostSchema.safeParse(validationFields);
         if (!result.success) {
             const errs: FieldErrors = {};
@@ -85,17 +85,33 @@ export function useCreatePost(): CreatePostHook {
                 tags: processedTags
             };
 
-            if (editId) {
+            if (suggestId) {
+                // Fetch original data for comparison
+                const originalPost = await apiGetPost(suggestId);
+                await createEditSuggestion({
+                    targetId: suggestId,
+                    targetType: 'post',
+                    opId: opId || originalPost.authorId,
+                    originalData: {
+                        title: originalPost.title,
+                        description: originalPost.description,
+                        tags: originalPost.tags,
+                        tweetUrl: originalPost.tweetUrl,
+                    },
+                    suggestedData: payload
+                });
+                showToast('Suggestion submitted for review!', 'success');
+            } else if (editId) {
                 await apiUpdatePost(editId, payload);
                 showToast('Post updated!', 'success');
             } else {
                 await apiCreatePost(payload);
                 showToast('Post published!', 'success');
             }
-            router.replace('/');
+            router.back();
             return true;
-        } catch {
-            showToast(`Failed to ${editId ? 'update' : 'publish'}. Try again.`, 'error');
+        } catch (err: any) {
+            showToast(err.message || 'Action failed. Try again.', 'error');
             return false;
         } finally {
             setSubmitting(false);

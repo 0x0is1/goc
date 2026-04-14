@@ -16,7 +16,7 @@ interface SnakeListItemProps {
     onRefresh?: () => void;
 }
 
-export const SnakeListItem = memo(({ person, rank, onRefresh }: SnakeListItemProps) => {
+export const SnakeListItem = memo(function SnakeListItem({ person, rank, onRefresh }: SnakeListItemProps) {
     const { tokens } = useTheme();
     const { playTick, playSuccess } = useFeedback();
     const { currentVote, upvotes, downvotes, vote } = useSnakeVote(person.id, person.upvotes, person.downvotes ?? 0);

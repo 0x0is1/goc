@@ -20,20 +20,23 @@ import { useFeedback } from '@contexts/FeedbackContext';
 export default function CreatePost() {
     const { tokens } = useTheme();
     const { user } = useAuthContext();
-    const { editId } = useLocalSearchParams<{ editId: string }>();
+    const { editId, suggestId } = useLocalSearchParams<{ editId: string, suggestId: string }>();
     const { fields, fieldErrors, submitting, setField, submit, loadPost } = useCreatePost();
     const [previewMode, setPreviewMode] = useState(false);
     const { playClick, playTick, playSuccess } = useFeedback();
 
     const isEditing = !!editId;
+    const isSuggesting = !!suggestId;
 
     useEffect(() => {
         if (!user) {
             router.replace('/login');
         } else if (editId) {
             loadPost(editId);
+        } else if (suggestId) {
+            loadPost(suggestId);
         }
-    }, [user, editId, loadPost]);
+    }, [user, editId, suggestId, loadPost]);
 
     const screenStyle = {
         flex: 1,
@@ -241,9 +244,9 @@ export default function CreatePost() {
                         </View>
 
                         <DSButton
-                            label={isEditing ? "Save Changes" : "Publish Post"}
+                            label={isSuggesting ? "Submit Suggestion" : isEditing ? "Save Changes" : "Publish Post"}
                             onPress={async () => {
-                                const success = await submit(editId);
+                                const success = await submit({ editId, suggestId });
                                 if (success) playSuccess();
                             }}
                             variant="solid"

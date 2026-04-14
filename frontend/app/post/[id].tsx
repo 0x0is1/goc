@@ -20,12 +20,14 @@ import { NavBar } from '@components/common/NavBar';
 import { useFeedback } from '@contexts/FeedbackContext';
 import { useAuthContext } from '@contexts/AuthContext';
 import { deletePost } from '@services/api';
+import { useSuggestionCount } from '@hooks/useSuggestionCount';
 
 export default function PostDetail() {
     const { id, showImage } = useLocalSearchParams<{ id: string, showImage?: string }>();
-    const { tokens, colorMode } = useTheme();
+    const { tokens } = useTheme();
     const { user } = useAuthContext();
     const { post, loading, error } = usePost(id ?? '');
+    const { count: suggestionCount } = useSuggestionCount(id ?? '');
     const { playClick, playTick } = useFeedback();
     const [tweetStatus, setTweetStatus] = useState<'loading' | 'loaded' | 'error'>('loading');
 
@@ -140,8 +142,17 @@ export default function PostDetail() {
                             </DSText>
                         </View>
 
-                        {user?.uid === post.authorId && (
+                        {user?.uid === post.authorId ? (
                             <View style={styles.ownerActions}>
+                                {suggestionCount > 0 && (
+                                    <TouchableOpacity
+                                        onPress={() => router.push(`/suggestions/list/${post.id}`)}
+                                        style={[styles.suggestionBadge, { backgroundColor: tokens.colors.accent + '20' }]}
+                                    >
+                                        <Ionicons name="bulb" size={12} color={tokens.colors.accent} />
+                                        <DSText size="xs" weight="bold" color="accent">{suggestionCount}</DSText>
+                                    </TouchableOpacity>
+                                )}
                                 <TouchableOpacity
                                     onPress={() => router.push({ pathname: '/create', params: { editId: post.id } })}
                                     style={[styles.actionIcon, { backgroundColor: tokens.colors.surface2 }]}
@@ -160,7 +171,7 @@ export default function PostDetail() {
                                                     try {
                                                         await deletePost(post.id);
                                                         router.back();
-                                                    } catch (err) {
+                                                    } catch {
                                                         Alert.alert('Error', 'Failed to delete post.');
                                                     }
                                                 }
@@ -172,6 +183,14 @@ export default function PostDetail() {
                                     <Ionicons name="trash-outline" size={16} color={tokens.colors.accent} />
                                 </TouchableOpacity>
                             </View>
+                        ) : (
+                            <TouchableOpacity
+                                onPress={() => router.push({ pathname: '/create', params: { suggestId: post.id } })}
+                                style={[styles.suggestBtn, { backgroundColor: tokens.colors.surface2 }]}
+                            >
+                                <Ionicons name="bulb-outline" size={14} color={tokens.colors.accent} />
+                                <DSText size="xs" weight="bold" color="accent">SUGGEST EDIT</DSText>
+                            </TouchableOpacity>
                         )}
                     </View>
 
@@ -324,6 +343,23 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    suggestionBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
+        marginRight: 4,
+    },
+    suggestBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 10,
     },
     authorBadge: {
         backgroundColor: 'rgba(0,0,0,0.03)',
