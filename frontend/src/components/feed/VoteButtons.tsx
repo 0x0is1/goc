@@ -12,6 +12,7 @@ import { useTheme } from '@contexts/ThemeContext';
 import { useFeedback } from '@contexts/FeedbackContext';
 import { DSText } from '@ds/Text';
 import { useVote } from '@hooks/useVote';
+import { formatCompactNumber } from '@utils/formatters';
 import { VoteType } from '@appTypes/index';
 
 interface VoteButtonsProps {
@@ -71,7 +72,7 @@ export function VoteButtons({ postId, upvotes, downvotes, iconSize = 18 }: VoteB
                         weight="bold"
                         style={{ color: upActive ? "white" : tokens.colors.textMuted }}
                     >
-                        {String(currentUpvotes)}
+                        {formatCompactNumber(currentUpvotes)}
                     </DSText>
                 </Animated.View>
             </TouchableOpacity>
@@ -94,7 +95,7 @@ export function VoteButtons({ postId, upvotes, downvotes, iconSize = 18 }: VoteB
                         weight="bold"
                         style={{ color: downActive ? "white" : tokens.colors.textMuted }}
                     >
-                        {String(currentDownvotes)}
+                        {formatCompactNumber(currentDownvotes)}
                     </DSText>
                 </Animated.View>
             </TouchableOpacity>
