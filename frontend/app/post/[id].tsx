@@ -125,7 +125,7 @@ export default function PostDetail() {
                 ]}
             >
                 <View style={{ gap: tokens.spacing.md }}>
-                    <DSText size="xl" weight="extraBold" color="textPrimary">
+                    <DSText size="md" weight="extraBold" color="textPrimary">
                         {post.title}
                     </DSText>
 

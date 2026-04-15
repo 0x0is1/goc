@@ -138,7 +138,7 @@ export const FeedCard = memo(({ post, refreshKey }: FeedCardProps) => {
           )}
 
           <MarkdownBody maxLines={4} compact containerStyle={{ marginBottom: tokens.spacing.sm }}>
-            {post.description ?? ''}
+            {post.description.length > 200 ? post.description.substring(0, 200) + '...' : post.description ?? ''}
           </MarkdownBody>
 
           <TweetEmbed

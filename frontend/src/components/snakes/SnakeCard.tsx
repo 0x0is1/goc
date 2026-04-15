@@ -79,7 +79,7 @@ export const SnakeCard = memo(({ person, onRefresh }: SnakeCardProps) => {
 
                     <View style={styles.info}>
                         <View style={styles.nameRow}>
-                            <DSText size="lg" weight="extraBold" color="textPrimary" numberOfLines={1} style={{ flex: 1 }}>
+                            <DSText size="md" weight="extraBold" color="textPrimary" numberOfLines={1} style={{ flex: 1 }}>
                                 {person.name}
                             </DSText>
                             {isOwner && (

@@ -130,7 +130,7 @@ export default function SnakeDetail() {
                         )}
 
                         <View style={styles.heroText}>
-                            <DSText size="lg" weight="extraBold" color="textPrimary">
+                            <DSText size="md" weight="extraBold" color="textPrimary">
                                 {person.name}
                             </DSText>
                             <View style={[styles.profBadge, { backgroundColor: tokens.colors.surface2 }]}>

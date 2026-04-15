@@ -64,7 +64,7 @@ export const SnakeListItem = memo(function SnakeListItem({ person, rank, onRefre
                     )}
 
                     <View style={styles.info}>
-                        <DSText size="lg" weight="extraBold" color="textPrimary" numberOfLines={1}>
+                        <DSText size="md" weight="extraBold" color="textPrimary" numberOfLines={1}>
                             {person.name}
                         </DSText>
                         <View style={[styles.profBadge, { backgroundColor: tokens.colors.surface2 }]}>
