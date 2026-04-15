@@ -34,18 +34,23 @@ export function formatFullDate(dateString: string): string {
  * Formats numbers into a compact string representation (e.g., 1.2K, 14M, 2B).
  * If the number is zero or negative, returns "0".
  */
-export function formatCompactNumber(num: number | undefined | null): string {
-    if (!num || num <= 0) return '0';
+/**
+ * Formats numbers into a compact string representation (e.g., 1.2K, 14M, 2B).
+ * If the number is zero or negative, returns "0".
+ */
+export function formatCompactNumber(num: number | string | undefined | null): string {
+    const val = Number(num);
+    if (!val || isNaN(val) || val <= 0) return '0';
 
-    if (num >= 1000000000) {
-        return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
+    if (val >= 1000000000) {
+        return (val / 1000000000).toFixed(1).replace(/\.0$/, '') + 'B';
     }
-    if (num >= 1000000) {
-        return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
+    if (val >= 1000000) {
+        return (val / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
     }
-    if (num >= 1000) {
-        return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    if (val >= 1000) {
+        return (val / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
     }
-    return num.toString();
+    return val.toString();
 }
 
